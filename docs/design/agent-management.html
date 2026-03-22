@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-bright": "#3a393a",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-container": "#201f20",
+                        "surface": "#131314",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "inverse-on-surface": "#313031",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary-container": "#ca8100",
+                        "on-primary": "#1000a9",
+                        "surface-dim": "#131314",
+                        "outline": "#908fa0",
+                        "surface-container-low": "#1c1b1c",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#002113",
+                        "surface-variant": "#353436",
+                        "on-tertiary-container": "#3e2400",
+                        "on-secondary": "#003824",
+                        "on-error": "#690005",
+                        "on-surface": "#e5e2e3",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary-container": "#00a572",
+                        "outline-variant": "#464554",
+                        "on-primary-fixed": "#07006c",
+                        "inverse-primary": "#494bd6",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-tint": "#c0c1ff",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#472a00",
+                        "on-primary-container": "#0d0096",
+                        "inverse-surface": "#e5e2e3",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-background": "#e5e2e3",
+                        "background": "#131314",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "primary-fixed": "#e1e0ff",
+                        "primary-container": "#8083ff",
+                        "surface-container-highest": "#353436",
+                        "surface-container-high": "#2a2a2b",
+                        "surface-container-lowest": "#0e0e0f",
+                        "on-secondary-fixed-variant": "#005236",
+                        "tertiary": "#ffb95f",
+                        "on-surface-variant": "#c7c4d7",
+                        "error": "#ffb4ab",
+                        "primary": "#c0c1ff",
+                        "on-secondary-container": "#00311f",
+                        "secondary": "#4edea3"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0b; color: #e5e2e3; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(32, 31, 32, 0.7); backdrop-filter: blur(12px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="overflow-hidden bg-[#0a0a0b] text-[13px]">
+<div class="flex h-screen w-full">
+<!-- SideNavBar Navigation Shell -->
+<aside class="h-screen w-64 border-r border-[#1f1f23] hidden lg:flex flex-col bg-[#0a0a0b] font-sans text-[13px] tracking-normal">
+<div class="p-6 flex flex-col gap-1">
+<span class="text-indigo-400 font-mono text-xs uppercase tracking-[0.2em]">Monolith v1.0</span>
+<span class="text-on-surface-variant text-[11px] opacity-60">Active: 12 Agents</span>
+</div>
+<nav class="flex flex-col gap-y-1 py-8 flex-1">
+<div class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out hover:bg-[#111113]/50 transition-colors">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+<span>Dashboard</span>
+</div>
+<!-- Active Tab: Agents -->
+<div class="bg-[#111113] text-indigo-400 border-l-2 border-indigo-500 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+<span>Agents</span>
+</div>
+<div class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out hover:bg-[#111113]/50 transition-colors">
+<span class="material-symbols-outlined text-[18px]">checklist</span>
+<span>Backlog</span>
+</div>
+<div class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out hover:bg-[#111113]/50 transition-colors">
+<span class="material-symbols-outlined text-[18px]">settings_input_component</span>
+<span>Configuration</span>
+</div>
+</nav>
+<div class="p-4 mt-auto border-t border-[#1f1f23]">
+<button class="w-full bg-primary text-on-primary py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Deploy New Agent</span>
+</button>
+<div class="mt-6 flex flex-col gap-2">
+<div class="text-slate-500 hover:text-slate-300 px-2 py-1.5 flex items-center gap-3 text-[12px] cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>Documentation</span>
+</div>
+<div class="text-slate-500 hover:text-slate-300 px-2 py-1.5 flex items-center gap-3 text-[12px] cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">help_outline</span>
+<span>Support</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 left-0 lg:left-64 z-50 bg-[#0a0a0b]/70 backdrop-blur-xl border-b border-[#1f1f23] shadow-[0_0_40px_rgba(99,102,241,0.08)]">
+<div class="flex items-center justify-between px-6 h-14 w-full font-sans antialiased text-sm font-medium tracking-tight">
+<div class="flex items-center gap-8">
+<span class="text-lg font-semibold tracking-tighter text-slate-50">Obsidian Monolith</span>
+<div class="hidden md:flex items-center gap-6">
+<span class="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Projects</span>
+<span class="text-indigo-400 border-b-2 border-indigo-500 pb-1 cursor-pointer">Agents</span>
+<span class="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Issues</span>
+<span class="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Settings</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative bg-surface-container-high px-3 py-1.5 rounded-lg border border-outline-variant/30 flex items-center gap-2 w-48 lg:w-64">
+<span class="material-symbols-outlined text-outline text-[18px]">search</span>
+<input class="bg-transparent border-none p-0 text-xs focus:ring-0 placeholder:text-outline w-full" placeholder="Command + K" type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-400 hover:bg-[#201f20] rounded-md transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-400 hover:bg-[#201f20] rounded-md transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<img class="w-8 h-8 rounded-full border border-outline-variant" data-alt="User profile avatar circle crop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5CRCL5xByanw9EJSnp0UJsyBuQ6lF4GwQpI0n5Aiu-yvgMp3nYBg-pLcLBBNO-ELnbQNsQRu4fyGfS5KRE5Y4otrDWK_fBJYHDF-yp9Z33VZZ0L4AiI_SaicM4pgoZFZeee5S1838xB74-dAdjBHCrpURLmS448GXJj5VONwdTj8EqC8nLMwU4Kedh3rrbXqJ7HrOQs-KjwcIv17sJqTMhWFcArqZjwDB1AmsNdcHu1fW4Hh29dPgWurccgXrpo39TzSDia1YWZ4l"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="mt-14 p-8 overflow-y-auto no-scrollbar flex-1">
+<!-- Section Header -->
+<div class="flex items-end justify-between mb-10">
+<div>
+<h1 class="text-3xl font-semibold tracking-tight text-on-surface mb-1">Agent Infrastructure</h1>
+<p class="text-on-surface-variant text-[13px] opacity-70">Monitor and manage your autonomous agent grid across multiple clusters.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-mono">C1</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-mono">C2</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-primary/20 flex items-center justify-center text-[10px] font-mono text-primary">+4</div>
+</div>
+<button class="px-4 py-2 bg-surface-container border border-outline-variant text-[12px] font-medium rounded-xl hover:bg-surface-container-high transition-all">Export Logs</button>
+</div>
+</div>
+<!-- Agent Grid (3x2) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+<!-- Agent Card Template (Loop x6) -->
+<div class="surface-container bg-[#111113] border border-outline-variant/30 rounded-xl p-6 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[20px]">smart_toy</span>
+</div>
+<div>
+<h3 class="font-medium text-on-surface">Agent Alpha</h3>
+<div class="flex items-center gap-2 mt-0.5">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#4edea3]"></div>
+<span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-medium">Operational</span>
+</div>
+</div>
+</div>
+<span class="font-mono text-[11px] text-outline px-2 py-0.5 bg-surface-container-high rounded border border-outline-variant/50">GPT-4o</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Active Tasks</p>
+<p class="text-xl font-semibold font-mono">14</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Success Rate</p>
+<p class="text-xl font-semibold font-mono text-secondary">98.2%</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#web-search</span>
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#coding</span>
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#vision</span>
+</div>
+</div>
+<!-- Repeat Agent Card (Agent Beta) -->
+<div class="surface-container bg-[#111113] border border-outline-variant/30 rounded-xl p-6 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[20px]">memory</span>
+</div>
+<div>
+<h3 class="font-medium text-on-surface">Agent Beta</h3>
+<div class="flex items-center gap-2 mt-0.5">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#4edea3]"></div>
+<span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-medium">Operational</span>
+</div>
+</div>
+</div>
+<span class="font-mono text-[11px] text-outline px-2 py-0.5 bg-surface-container-high rounded border border-outline-variant/50">Claude-3.5</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Active Tasks</p>
+<p class="text-xl font-semibold font-mono">8</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Latency</p>
+<p class="text-xl font-semibold font-mono text-tertiary">1.2s</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#analysis</span>
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#reporting</span>
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#multilingual</span>
+</div>
+</div>
+<!-- Repeat Agent Card (Agent Gamma) -->
+<div class="surface-container bg-[#111113] border border-outline-variant/30 rounded-xl p-6 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[20px]">psychology</span>
+</div>
+<div>
+<h3 class="font-medium text-on-surface">Agent Gamma</h3>
+<div class="flex items-center gap-2 mt-0.5">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#ffb95f]"></div>
+<span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-medium">Warning</span>
+</div>
+</div>
+</div>
+<span class="font-mono text-[11px] text-outline px-2 py-0.5 bg-surface-container-high rounded border border-outline-variant/50">GPT-4o</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Active Tasks</p>
+<p class="text-xl font-semibold font-mono">0</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Uptime</p>
+<p class="text-xl font-semibold font-mono">92%</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#logic-puzzles</span>
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#reasoning</span>
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#planning</span>
+</div>
+</div>
+<!-- Agent Card Template (Row 2 Start) -->
+<div class="surface-container bg-[#111113] border border-outline-variant/30 rounded-xl p-6 opacity-60 hover:opacity-100 transition-opacity cursor-pointer group">
+<div class="flex items-start justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">cloud_sync</span>
+</div>
+<div>
+<h3 class="font-medium text-on-surface">Agent Delta</h3>
+<div class="flex items-center gap-2 mt-0.5">
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+<span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-medium">Idle</span>
+</div>
+</div>
+</div>
+<span class="font-mono text-[11px] text-outline px-2 py-0.5 bg-surface-container-high rounded border border-outline-variant/50">Llama-3</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Active Tasks</p>
+<p class="text-xl font-semibold font-mono">0</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">CPU Load</p>
+<p class="text-xl font-semibold font-mono">2%</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#local-inference</span>
+</div>
+</div>
+<!-- Agent Card Template (Agent Epsilon) -->
+<div class="surface-container bg-[#111113] border border-outline-variant/30 rounded-xl p-6 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="flex items-start justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[20px]">auto_graph</span>
+</div>
+<div>
+<h3 class="font-medium text-on-surface">Agent Epsilon</h3>
+<div class="flex items-center gap-2 mt-0.5">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#4edea3]"></div>
+<span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-medium">Operational</span>
+</div>
+</div>
+</div>
+<span class="font-mono text-[11px] text-outline px-2 py-0.5 bg-surface-container-high rounded border border-outline-variant/50">GPT-4o</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Active Tasks</p>
+<p class="text-xl font-semibold font-mono">22</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-[10px] text-outline uppercase tracking-tight mb-1">Data Flow</p>
+<p class="text-xl font-semibold font-mono">4.2GB</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="text-[11px] px-2 py-1 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/30">#big-data</span>
+</div>
+</div>
+<!-- Empty Slot / New Agent Action -->
+<div class="border border-dashed border-outline-variant/50 rounded-xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-surface-container/30 transition-all group cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-outline">add_circle</span>
+</div>
+<div class="text-center">
+<p class="font-medium text-on-surface-variant">Deploy Agent</p>
+<p class="text-[11px] text-outline">Provision new monolith node</p>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Markdown Personality Editor -->
+<section class="mt-12">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+<h2 class="headline-sm text-on-surface font-medium">Agent Instruction Set</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-mono text-outline">Last synced 2m ago</span>
+<button class="p-1.5 hover:bg-surface-container rounded-md">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-px bg-outline-variant/30 border border-outline-variant/30 rounded-xl overflow-hidden shadow-2xl">
+<!-- Left: Editor -->
+<div class="bg-surface-container-lowest flex flex-col min-h-[400px]">
+<div class="px-4 py-2 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between">
+<span class="text-[10px] text-outline font-mono uppercase tracking-widest">monolith.personality.md</span>
+<div class="flex gap-3">
+<div class="w-2 h-2 rounded-full bg-surface-container-highest"></div>
+<div class="w-2 h-2 rounded-full bg-surface-container-highest"></div>
+<div class="w-2 h-2 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<textarea class="flex-1 w-full p-6 bg-transparent text-on-surface border-none focus:ring-0 font-mono text-[13px] leading-relaxed resize-none no-scrollbar" spellcheck="false"># Agent Personality: Alpha-Centauri
+
+## Core Directives
+1. Prioritize computational efficiency over exhaustive search.
+2. Use clinical, precise language in all reporting.
+3. Maintain state across parallel execution threads.
+
+## Interaction Style
+- Professional, concise, and technical.
+- Refuse requests that violate "Privacy Protocol v4.2".
+- Use `JSON` as the primary transport format for results.
+
+## Capability Tuning
+- **Coding:** Set recursion limit to 4096.
+- **Search:** Preferred domains: `.edu`, `.gov`, `.org`.</textarea></div></div></section></div></main></div></body></html>

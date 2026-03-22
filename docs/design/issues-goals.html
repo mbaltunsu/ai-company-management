@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-bright": "#3a393a",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-container": "#201f20",
+                        "surface": "#131314",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "inverse-on-surface": "#313031",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary-container": "#ca8100",
+                        "on-primary": "#1000a9",
+                        "surface-dim": "#131314",
+                        "outline": "#908fa0",
+                        "surface-container-low": "#1c1b1c",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#002113",
+                        "surface-variant": "#353436",
+                        "on-tertiary-container": "#3e2400",
+                        "on-secondary": "#003824",
+                        "on-error": "#690005",
+                        "on-surface": "#e5e2e3",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary-container": "#00a572",
+                        "outline-variant": "#464554",
+                        "on-primary-fixed": "#07006c",
+                        "inverse-primary": "#494bd6",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-tint": "#c0c1ff",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#472a00",
+                        "on-primary-container": "#0d0096",
+                        "inverse-surface": "#e5e2e3",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-background": "#e5e2e3",
+                        "background": "#131314",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "primary-fixed": "#e1e0ff",
+                        "primary-container": "#8083ff",
+                        "surface-container-highest": "#353436",
+                        "surface-container-high": "#2a2a2b",
+                        "surface-container-lowest": "#0e0e0f",
+                        "on-secondary-fixed-variant": "#005236",
+                        "tertiary": "#ffb95f",
+                        "on-surface-variant": "#c7c4d7",
+                        "error": "#ffb4ab",
+                        "primary": "#c0c1ff",
+                        "on-secondary-container": "#00311f",
+                        "secondary": "#4edea3"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 18px;
+        }
+        body {
+            background-color: #0a0a0b;
+            color: #e5e2e3;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+        }
+        .obsidian-glow {
+            background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.08) 0%, transparent 40%);
+        }
+    </style>
+</head>
+<body class="antialiased">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#0a0a0b]/70 backdrop-blur-xl border-b border-[#1f1f23] shadow-[0_0_40px_rgba(99,102,241,0.08)] flex items-center justify-between px-6 h-14">
+<div class="flex items-center gap-8">
+<span class="text-lg font-semibold tracking-tighter text-slate-50">Obsidian Monolith</span>
+<nav class="hidden md:flex items-center gap-6 font-sans text-sm font-medium tracking-tight">
+<a class="text-slate-400 hover:text-slate-200 transition-colors active:scale-95 duration-200" href="#">Projects</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors active:scale-95 duration-200" href="#">Agents</a>
+<a class="text-indigo-400 border-b-2 border-indigo-500 pb-1 active:scale-95 duration-200" href="#">Issues</a>
+<a class="text-slate-400 hover:text-slate-200 transition-colors active:scale-95 duration-200" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#201f20] rounded-md transition-all p-2 text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-[#201f20] rounded-md transition-all p-2 text-slate-400">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="User profile avatar with minimalist design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmnTxYLey8UVM1MdYSm7dJYnVXzNJWe56KLImOaENBa6eGkHiCNFnayJqEkx-lDiA71RlmHPWVml5Vv3bi6HUNY0m7UGTrEFopGiRqLBWT0Wv4B-ijA90uPcmwHAsZXon-N6wN65hEwTbhVc78OBXVjD75o3x8okyb9NDKHSc4NbkxsaG_gnJ1fuYSr58r0yO42RBJ-rZ8tiMQp02igRgn4D9DklbA-tRCHFG3tH0TYKSYPQqJlADqjRGGWFRkw5UOu-tFgROrGfFQ"/>
+</div>
+</header>
+<div class="flex pt-14">
+<!-- Sidebar Navigation -->
+<aside class="h-[calc(100vh-3.5rem)] w-64 border-r border-[#1f1f23] hidden lg:flex flex-col bg-[#0a0a0b] sticky top-14">
+<div class="flex flex-col gap-y-1 py-8 px-4">
+<div class="mb-6 px-4">
+<div class="text-indigo-400 font-mono text-xs uppercase tracking-[0.2em] mb-1">Monolith v1.0</div>
+<div class="text-slate-400 text-xs">Active: 12 Agents</div>
+</div>
+<a class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out hover:bg-[#111113]/50 rounded-md">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="bg-[#111113] text-indigo-400 border-l-2 border-indigo-500 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out">
+<span class="material-symbols-outlined">checklist</span>
+<span>Backlog</span>
+</a>
+<a class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out hover:bg-[#111113]/50 rounded-md">
+<span class="material-symbols-outlined">smart_toy</span>
+<span>Agents</span>
+</a>
+<a class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer duration-150 ease-in-out hover:bg-[#111113]/50 rounded-md">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span>Configuration</span>
+</a>
+<div class="mt-8 px-4">
+<button class="w-full bg-primary text-on-primary py-2 px-4 rounded-lg font-medium text-xs active:scale-95 transition-all">
+                        Deploy New Agent
+                    </button>
+</div>
+</div>
+<div class="mt-auto py-8 px-4 border-t border-[#1f1f23]">
+<a class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer text-xs">
+<span class="material-symbols-outlined">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="text-slate-500 hover:text-slate-300 px-4 py-2 flex items-center gap-3 cursor-pointer text-xs">
+<span class="material-symbols-outlined">help_outline</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 obsidian-glow min-h-screen">
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-12">
+<div>
+<h1 class="text-2xl font-semibold tracking-tight text-on-background mb-1 font-headline">Execution &amp; Backlog</h1>
+<p class="text-on-surface-variant label-sm uppercase tracking-wider text-[11px] font-medium">Tracking system integrity and unit goals</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    New Issue
+                </button>
+</div>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Issues List (75%) -->
+<div class="w-full lg:w-3/4 space-y-6">
+<!-- Filters -->
+<div class="flex items-center gap-4 bg-surface-container-low p-1 rounded-xl w-fit border border-outline-variant/30">
+<button class="px-4 py-1.5 rounded-lg bg-surface-container-high text-on-surface font-medium">Open</button>
+<button class="px-4 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors">Assigned</button>
+<button class="px-4 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors">Milestones</button>
+</div>
+<!-- GitHub Style List -->
+<div class="bg-surface-container rounded-xl overflow-hidden border border-outline-variant/20 shadow-xl">
+<div class="bg-surface-container-high px-6 py-4 flex items-center justify-between border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">check_circle</span>
+<span class="font-medium">23 Open Issues</span>
+</div>
+<div class="flex gap-4 text-on-surface-variant">
+<span>Sort</span>
+<span>Label</span>
+</div>
+</div>
+<!-- Issue Items -->
+<div class="divide-y divide-outline-variant/10">
+<!-- Item 1 -->
+<div class="px-6 py-5 flex items-start gap-4 hover:bg-surface-container-high/50 transition-colors group">
+<span class="material-symbols-outlined text-secondary mt-1">radio_button_checked</span>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-on-background font-medium text-sm group-hover:text-primary transition-colors">Neural link latency spikes in high-load clusters</span>
+<span class="text-on-surface-variant font-mono text-xs">#123</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-primary-fixed-dim bg-primary/10 px-2 py-0.5 rounded border border-primary/20">[Project Gamma]</span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Open
+                                        </span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                            High Priority
+                                        </span>
+<span class="text-on-surface-variant text-xs ml-auto">2 days ago</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="px-6 py-5 flex items-start gap-4 hover:bg-surface-container-high/50 transition-colors group">
+<span class="material-symbols-outlined text-secondary mt-1">radio_button_checked</span>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-on-background font-medium text-sm group-hover:text-primary transition-colors">Refactor core agent initialization sequence</span>
+<span class="text-on-surface-variant font-mono text-xs">#121</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-primary-fixed-dim bg-primary/10 px-2 py-0.5 rounded border border-primary/20">[Project Alpha]</span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Open
+                                        </span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                            Low Priority
+                                        </span>
+<span class="text-on-surface-variant text-xs ml-auto">5 days ago</span>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="px-6 py-5 flex items-start gap-4 hover:bg-surface-container-high/50 transition-colors group">
+<span class="material-symbols-outlined text-secondary mt-1">radio_button_checked</span>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-on-background font-medium text-sm group-hover:text-primary transition-colors">API documentation for v2 monolith endpoints</span>
+<span class="text-on-surface-variant font-mono text-xs">#118</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-primary-fixed-dim bg-primary/10 px-2 py-0.5 rounded border border-primary/20">[Internal]</span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Open
+                                        </span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                            High Priority
+                                        </span>
+<span class="text-on-surface-variant text-xs ml-auto">1 week ago</span>
+</div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="px-6 py-5 flex items-start gap-4 hover:bg-surface-container-high/50 transition-colors group">
+<span class="material-symbols-outlined text-secondary mt-1">radio_button_checked</span>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-on-background font-medium text-sm group-hover:text-primary transition-colors">Security patch for cross-agent communication protocols</span>
+<span class="text-on-surface-variant font-mono text-xs">#104</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-mono text-primary-fixed-dim bg-primary/10 px-2 py-0.5 rounded border border-primary/20">[Project Gamma]</span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Open
+                                        </span>
+<span class="flex items-center gap-1.5 text-on-surface-variant text-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                            High Priority
+                                        </span>
+<span class="text-on-surface-variant text-xs ml-auto">2 weeks ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Stats & Goals (25%) -->
+<div class="w-full lg:w-1/4 space-y-6">
+<!-- Quick Stats Card -->
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant/10 obsidian-glow">
+<h3 class="text-on-surface-variant label-sm font-semibold tracking-wider mb-6">QUICK STATS</h3>
+<div class="space-y-6">
+<div>
+<div class="text-[11px] font-medium text-on-surface-variant mb-1 uppercase tracking-tight">Open Issues</div>
+<div class="text-3xl font-semibold text-on-background font-headline leading-none">23</div>
+</div>
+<div>
+<div class="text-[11px] font-medium text-on-surface-variant mb-1 uppercase tracking-tight">Goal Completion</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-semibold text-on-background font-headline leading-none">68%</span>
+<span class="text-secondary text-xs">+4.2%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Goals -->
+<div class="space-y-4">
+<h3 class="text-on-surface-variant label-sm font-semibold tracking-wider px-2">ACTIVE GOALS</h3>
+<!-- Goal 1 -->
+<div class="bg-surface-container rounded-xl p-5 border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<span class="font-medium text-on-background">Release v2.0</span>
+<span class="text-[11px] font-mono text-on-surface-variant">Q3 DEADLINE</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[11px]">
+<span class="text-on-surface-variant">PROGRESS</span>
+<span class="text-on-background">60%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[60%]"></div>
+</div>
+</div>
+</div>
+<!-- Goal 2 -->
+<div class="bg-surface-container rounded-xl p-5 border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<span class="font-medium text-on-background">Optimize Latency</span>
+<span class="text-[11px] font-mono text-on-surface-variant">STABILITY</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[11px]">
+<span class="text-on-surface-variant">PROGRESS</span>
+<span class="text-on-background">40%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[40%]"></div>
+</div>
+</div>
+</div>
+<!-- Mini Activity Bleed -->
+<div class="bg-surface-container rounded-xl border border-outline-variant/10 overflow-hidden h-24 relative flex items-end">
+<div class="absolute top-4 left-4 z-10">
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.1em]">Network Pulse</div>
+</div>
+<!-- Mock Sparkline with CSS gradients -->
+<div class="w-full h-12 bg-gradient-to-t from-primary/20 to-transparent" style="clip-path: polygon(0% 100%, 0% 70%, 10% 85%, 20% 60%, 30% 75%, 40% 40%, 50% 65%, 60% 30%, 70% 55%, 80% 25%, 90% 45%, 100% 10%, 100% 100%);"></div>
+<div class="absolute bottom-0 w-full h-[1px] bg-primary/40"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#0a0a0b] border-t border-[#1f1f23] flex justify-around items-center h-16 px-4 z-50">
+<button class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px]">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="text-[10px]">Agents</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-indigo-400">
+<span class="material-symbols-outlined">checklist</span>
+<span class="text-[10px]">Issues</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px]">Config</span>
+</button>
+</nav>
+</body></html>

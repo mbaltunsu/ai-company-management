@@ -9,17 +9,52 @@
 
 ### Screens Catalog
 
-| Screen | Stitch Screen ID | Status |
-|--------|-----------------|--------|
-| Dashboard Overview | `031300efc1c44804b435068e44b012b3` | Designed |
-| Project Detail | — | Needs design |
-| Agent Management | — | Needs design |
-| Issues & Goals | — | Needs design |
-| Settings | — | Needs design |
+| Screen | Stitch Screen ID | Assets | Status |
+|--------|-----------------|--------|--------|
+| Dashboard Overview | `031300efc1c44804b435068e44b012b3` | `docs/design/dashboard-overview.{png,html}` | Designed (canonical) |
+| Project Detail | `2e79c753f0c24d54bba8421457f1a180` | `docs/design/project-detail.{png,html}` | Designed (needs fixes) |
+| Issues & Goals | `1dfc5c5da7144626a844e4c5c222ba21` | `docs/design/issues-goals.{png,html}` | Designed (needs fixes) |
+| Agent Management | `2f069bc1c026419b9cade9d269e02803` | `docs/design/agent-management.{png,html}` | Designed (needs fixes) |
+| Settings | `d0cb9c46dcfb428cab6e9c2950a57cef` | `docs/design/settings.{png,html}` | Designed (needs fixes) |
 
-### Local Assets
-- Screenshot: `docs/design/dashboard-overview.png`
-- HTML Reference: `docs/design/dashboard-overview.html`
+### Consistency Notes (Stitch vs Canonical)
+
+The Dashboard Overview is the **canonical reference** for all navigation and naming. Stitch generated inconsistent names on the other screens. The implementation MUST follow these canonical names:
+
+| Canonical Name | Stitch Generated (WRONG) | Where Used |
+|---------------|-------------------------|------------|
+| Settings | Configuration | Sidebar nav on Project Detail, Issues, Agents, Settings |
+| Issues & Goals | Execution & Backlog / Backlog | Sidebar nav and page title on Issues screen |
+| Agent Management | Agent Infrastructure | Page title on Agents screen |
+| Dashboard | Dashboard | Correct everywhere |
+| Projects | Projects | Correct everywhere |
+| Agents | Agents | Correct in nav, wrong in page title |
+
+**Sidebar navigation (canonical order — from Dashboard screen):**
+1. Dashboard (icon: `LayoutDashboard`)
+2. Projects (icon: `FolderKanban`)
+3. Agents (icon: `Bot`)
+4. Issues & Goals (icon: `CircleDot`)
+5. Settings (icon: `Settings`)
+
+**Elements in Stitch designs NOT in our spec (do NOT implement):**
+- "Deploy New Agent" button in sidebar
+- "Backlog" as a nav item
+- "Configuration" as a nav item
+- "API Keys", "Notifications", "Billing" in settings sub-nav
+- Horizontal top nav bar replacing sidebar (Agent Management screen)
+
+**Settings sub-nav (canonical):**
+1. GitHub
+2. Database (Supabase)
+3. Projects (scan directories)
+4. Appearance (theme)
+
+**Design elements to KEEP from Stitch screens:**
+- Project Detail: commit velocity chart, README preview card, branch table, release timeline, goals progress bars, internal tags
+- Issues & Goals: issue list with label pills and priority dots, quick stats sidebar, goal cards with progress bars, "Network Pulse" visualization
+- Agent Management: agent cards with metrics (active tasks, success rate, latency/uptime), agent instruction set editor with monospace
+- Settings: GitHub connection status with emerald dot, API rate limits display, auto-sync interval, organization config
 
 ---
 
