@@ -10,7 +10,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 262.1 83.3% 57.8%;
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -22,50 +22,51 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 262.1 83.3% 57.8%;
+    --ring: 239 84% 67%;
     --radius: 0.5rem;
-    --chart-1: 262 83% 58%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --chart-1: 239 84% 67%;
+    --chart-2: 160 79% 56%;
+    --chart-3: 36 100% 69%;
+    --chart-4: 247 65% 75%;
+    --chart-5: 0 84% 60%;
     --sidebar: 240 5.9% 10%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-accent: 262.1 83.3% 57.8%;
+    --sidebar-border: 240 6% 12%;
+    --sidebar-accent: 239 84% 67%;
     --sidebar-accent-foreground: 0 0% 98%;
   }
 
+  /* Obsidian Monolith — Stitch Design System */
   .dark {
-    --background: 240 6% 4.7%;
-    --foreground: 0 0% 98%;
-    --card: 240 5% 7.1%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 5% 7.1%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 47.8%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262.1 83.3% 57.8%;
-    --chart-1: 262 83% 58%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar: 240 6% 3.5%;
-    --sidebar-foreground: 0 0% 89.4%;
-    --sidebar-border: 240 3.7% 11.8%;
-    --sidebar-accent: 262.1 83.3% 57.8%;
-    --sidebar-accent-foreground: 0 0% 98%;
+    --background: 240 6% 4%;
+    --foreground: 0 0% 97%;
+    --card: 240 5% 7%;
+    --card-foreground: 0 0% 97%;
+    --popover: 240 5% 7%;
+    --popover-foreground: 0 0% 97%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 97%;
+    --secondary: 240 6% 12%;
+    --secondary-foreground: 0 0% 97%;
+    --muted: 240 3% 13%;
+    --muted-foreground: 240 5% 67%;
+    --accent: 240 3% 13%;
+    --accent-foreground: 0 0% 97%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 97%;
+    --border: 240 6% 12%;
+    --input: 240 6% 12%;
+    --ring: 239 84% 67%;
+    --chart-1: 239 84% 67%;
+    --chart-2: 160 79% 56%;
+    --chart-3: 36 100% 69%;
+    --chart-4: 247 65% 75%;
+    --chart-5: 0 84% 60%;
+    --sidebar: 240 6% 4%;
+    --sidebar-foreground: 0 0% 89%;
+    --sidebar-border: 240 6% 12%;
+    --sidebar-accent: 239 84% 67%;
+    --sidebar-accent-foreground: 0 0% 97%;
   }
 }
 
@@ -75,5 +76,49 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Obsidian Monolith — Signature Animations */
+@layer utilities {
+  .pulse-emerald {
+    animation: pulse-emerald 2s infinite;
+  }
+
+  @keyframes pulse-emerald {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+
+  .glass {
+    @apply bg-card/70 backdrop-blur-md;
+  }
+
+  .ghost-border {
+    border: 1px solid #1f1f23;
+  }
+}
+
+/* Custom Scrollbar — Obsidian style */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0b;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f1f23;
+  border-radius: 10px;
 }

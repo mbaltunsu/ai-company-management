@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Obsidian Monolith | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0b;
+            color: #f8f8f8;
+            -webkit-font-smoothing: antialiased;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 1.25rem;
+        }
+        .pulse-emerald {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-emerald 2s infinite;
+        }
+        @keyframes pulse-emerald {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0b; }
+        ::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-dim": "#0a0a0b",
+                        "surface-container": "#111113",
+                        "surface-container-low": "#111113",
+                        "surface-container-high": "#201f20",
+                        "surface-container-highest": "#353436",
+                        "outline-variant": "#1f1f23",
+                        "primary": "#6366f1",
+                        "secondary": "#10b981",
+                        "tertiary": "#ffb95f",
+                        "on-background": "#f8f8f8",
+                        "on-surface-variant": "#a1a1aa",
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- SideNavBar (Authority Source: JSON) -->
+<aside class="w-[240px] h-screen border-r border-[#1f1f23] bg-[#0a0a0b] flex flex-col py-6 px-4 shrink-0 overflow-y-auto">
+<div class="mb-8 px-2">
+<h1 class="text-lg font-bold tracking-tighter text-[#f8f8f8]">Obsidian Monolith</h1>
+<p class="text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">v1.0.4</p>
+</div>
+<button class="mb-8 w-full py-2 px-4 bg-[#6366f1] text-[#f8f8f8] text-[13px] font-medium rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined !text-[18px]">add</span>
+            New Project
+        </button>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard Active (Intent: Main Dashboard Overview) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-[#6366f1] font-medium bg-[#111113] transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-[#a1a1aa] hover:text-[#f8f8f8] hover:bg-[#201f20] transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+                Projects
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-[#a1a1aa] hover:text-[#f8f8f8] hover:bg-[#201f20] transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+                Agents
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-[#a1a1aa] hover:text-[#f8f8f8] hover:bg-[#201f20] transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">checklist</span>
+                Issues &amp; Goals
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-[#a1a1aa] hover:text-[#f8f8f8] hover:bg-[#201f20] transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto pt-6 border-t border-[#1f1f23]">
+<p class="px-3 mb-3 text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">Active Nodes</p>
+<div class="space-y-1">
+<div class="flex items-center justify-between px-3 py-1.5 text-[12px] text-[#a1a1aa]">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+                        Agent Alpha
+                    </div>
+<span class="mono text-[10px]">L4</span>
+</div>
+<div class="flex items-center justify-between px-3 py-1.5 text-[12px] text-[#a1a1aa]">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+                        Agent Beta
+                    </div>
+<span class="mono text-[10px]">L2</span>
+</div>
+<div class="flex items-center justify-between px-3 py-1.5 text-[12px] text-[#a1a1aa]">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ffb95f]"></span>
+                        Agent Gamma
+                    </div>
+<span class="mono text-[10px]">IDLE</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+<!-- TopAppBar (Authority Source: JSON) -->
+<header class="h-16 border-b border-[#1f1f23] bg-[#0a0a0b]/70 backdrop-blur-md flex items-center justify-between px-8 w-full z-10 shrink-0">
+<div class="flex items-center gap-6 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1aa] !text-[18px]">search</span>
+<input class="w-full bg-[#111113] border border-[#1f1f23] rounded-lg pl-10 pr-4 py-1.5 text-[13px] text-[#f8f8f8] placeholder-[#52525b] focus:ring-2 focus:ring-[#6366f1]/20 focus:border-[#6366f1] outline-none transition-all" placeholder="Command Center (CMD+K)" type="text"/>
+</div>
+<nav class="hidden md:flex items-center gap-4">
+<span class="text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">Index</span>
+<span class="text-[#a1a1aa] text-[13px]">/</span>
+<span class="text-[#f8f8f8] text-[13px] font-medium">Dashboard Overview</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#a1a1aa] hover:text-[#6366f1] transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-[#6366f1] rounded-full border-2 border-[#0a0a0b]"></span>
+</button>
+<button class="text-[#a1a1aa] hover:text-[#6366f1] transition-colors">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#6366f1] to-[#c0c1ff] flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Stylized human developer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYIZlLgO_URl67_d7hqXweRbKUszbiHysujjybXEmpoLuiH4xwkF97PxgeFG_TSuFSNOmsEBOZx70wjSpS7og_nOHMWj-DqQZ7IB5NHq_sHK1hcGv3nyt5FaXt0d3X7UN9mxHEmwZU7noqjJoacDHrckrezMemZQHxFUriJnDA_QxIbfhRDkmHHWWpUQ4gGArjVKhf-WwBBJjFtvrTKW4L2ItpBimlOWgHdAjJvjdVvz8QXaZ0WVHtfct7g9iurKQJxX4595pUNg8W"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Top Row: Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Stat Card 1 -->
+<div class="bg-[#111113] p-6 rounded-xl relative overflow-hidden group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">Total Projects</span>
+<span class="text-[#10b981] text-[11px] flex items-center gap-1 font-medium"><span class="material-symbols-outlined !text-[14px]">trending_up</span>+2</span>
+</div>
+<div class="text-[24px] font-semibold text-[#f8f8f8]">12</div>
+<div class="mt-4 h-[30px] flex items-end gap-[2px]">
+<div class="w-1 h-[40%] bg-[#6366f1]/20 rounded-full"></div>
+<div class="w-1 h-[60%] bg-[#6366f1]/40 rounded-full"></div>
+<div class="w-1 h-[50%] bg-[#6366f1]/20 rounded-full"></div>
+<div class="w-1 h-[80%] bg-[#6366f1]/60 rounded-full"></div>
+<div class="w-1 h-[100%] bg-[#6366f1] rounded-full"></div>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-[#111113] p-6 rounded-xl relative overflow-hidden group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">Active Agents</span>
+<div class="w-2 h-2 rounded-full bg-[#10b981] pulse-emerald"></div>
+</div>
+<div class="text-[24px] font-semibold text-[#f8f8f8]">08</div>
+<div class="mt-4 flex items-center gap-2">
+<div class="flex -space-x-2">
+<img alt="Agent avatar" class="w-6 h-6 rounded-full border border-[#111113]" data-alt="Abstract agent icon green" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi6OpIr8hPNxgdRPTaV_PN30pevlPG3llqudipOxAIecff86d4nT_hFD-Hl7S6hmzTsADd0sHj-ib0CmVfb2gXywSyR8Flnyn_lwaP-pCYgwJDpQY0TztPEks2B0HKYi9G_cWxj7nvoH3zdlxZf7UbzA6mNwcHOFGQmTSb9b0fwv934n3bpwDsPqF8Vo27o8r8BhQRF0BxqS8EwVt0bEWt1HgeMZNiA3dFsQIzAvABRUIEaxISccjZJnzUrlYfllZJ2LMhv8tPiVj_"/>
+<img alt="Agent avatar" class="w-6 h-6 rounded-full border border-[#111113]" data-alt="Abstract agent icon blue" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDubLipX5hZQqRxu9udk7dUx8xdXMeK1rDSh8g6aujQhK-K7RoONLlV9rYxZEn0hrZ1fyLmmFCkxfuNZD67vVxacmCNz1XhoSw4e_lZFUMw7m49uXGLNMUlxNomOelhzzXj5PSmh3cofGs5LYmJ3Zkf2bdtMUE9ONuJN0hnAnWYGZwF4B_lvrH0IBxzFfGM017VkBnn9alWxWTEYt8yzNXOKnI42ch9l9NfAd9ypgqFEg3-4OGhOp5ptZckcwt1pBO_dj3zNO9e3hSd"/>
+<img alt="Agent avatar" class="w-6 h-6 rounded-full border border-[#111113]" data-alt="Abstract agent icon purple" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYniYnhQBBf0W2gALblehH7SNsZh_upJq4HrulzZ-WSmibTmTu0f8rWA1AFc7WPNFY_x2ZIOf2sohvemrLvmN9j8cAEUIMVtPYS3LoT0_JdTkf2z9MDj36qQBNCl90liunrO_XzAtTWAyNgnM2hReQkrq1SXUcOQcfmHa0vbo_X231a5L1tfHBWqrTr70rq3T6V-8mWt9Buh2ABCTjuWsEY4BcHHP2Ervsxk8PxlZrf-YfYDxDnGAYSy9eg_kNvFLvwfpp53k4ia08"/>
+</div>
+<span class="text-[11px] text-[#a1a1aa]">Running tasks</span>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-[#111113] p-6 rounded-xl relative overflow-hidden group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">Open Issues</span>
+<span class="text-[#ffb95f] text-[11px] font-medium">Critical: 4</span>
+</div>
+<div class="text-[24px] font-semibold text-[#f8f8f8]">23</div>
+<div class="mt-4 h-[30px] flex items-end gap-[2px]">
+<div class="w-1 h-[30%] bg-[#ffb95f]/20 rounded-full"></div>
+<div class="w-1 h-[20%] bg-[#ffb95f]/20 rounded-full"></div>
+<div class="w-1 h-[50%] bg-[#ffb95f]/40 rounded-full"></div>
+<div class="w-1 h-[70%] bg-[#ffb95f]/60 rounded-full"></div>
+<div class="w-1 h-[40%] bg-[#ffb95f]/20 rounded-full"></div>
+</div>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-[#111113] p-6 rounded-xl relative overflow-hidden group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[11px] font-medium uppercase tracking-wide text-[#a1a1aa]">Commits / wk</span>
+<span class="text-[#a1a1aa] text-[11px] font-medium">Avg: 42</span>
+</div>
+<div class="text-[24px] font-semibold text-[#f8f8f8]">47</div>
+<div class="mt-4 h-[30px] flex items-end gap-[2px]">
+<div class="w-1 h-[20%] bg-[#6366f1]/20 rounded-full"></div>
+<div class="w-1 h-[40%] bg-[#6366f1]/20 rounded-full"></div>
+<div class="w-1 h-[60%] bg-[#6366f1]/40 rounded-full"></div>
+<div class="w-1 h-[30%] bg-[#6366f1]/20 rounded-full"></div>
+<div class="w-1 h-[90%] bg-[#6366f1] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Middle Section: Grid & Feed -->
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
+<!-- Middle Left (60%): Project Grid -->
+<div class="lg:col-span-6 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-[18px] font-medium text-[#f8f8f8]">Active Deployments</h2>
+<button class="text-[11px] font-medium uppercase tracking-wide text-[#6366f1] hover:underline transition-all">View All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Project Card 1 -->
+<div class="bg-[#111113] p-5 rounded-xl border border-[#1f1f23] hover:border-[#6366f1]/50 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-[14px] font-semibold text-[#f8f8f8]">Agent Alpha</h3>
+<p class="text-[11px] text-[#a1a1aa] flex items-center gap-1">
+<span class="material-symbols-outlined !text-[12px]">account_tree</span> main
+                                    </p>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+</div>
+<div class="space-y-3">
+<div class="w-full bg-[#1f1f23] h-1 rounded-full overflow-hidden">
+<div class="bg-[#6366f1] h-full w-[85%] rounded-full"></div>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="mono text-[#52525b]">7f2e1a4</span>
+<span class="text-[#a1a1aa]">85% complete</span>
+</div>
+<div class="flex items-center gap-2 pt-2">
+<img alt="Agent" class="w-5 h-5 rounded-full" data-alt="Small round avatar image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlIEap51xwIgz-WAhNbqonh66-rPv1XdoGveHB98XrKeyeDvQenNK3dgp6cQlnQ1D-wNsejkkZfBMVNCLa5JIsbE_AGQQMMmwrBVW5Be0nEfH7kIXZRwjHtleV3KgzHTI-Ja0QoJidUaUhAR3jU3x8zIV2jpHNflBnh3xVsHobcpkfwBI4wncavib0v1swB6-QRFUQETq01JS1jtaECFbp8XbwZxltunX0kydU5mu5ioAZXZIuXQmxfgqKRuDUgjBPH9g1HdB5zD27"/>
+<span class="text-[11px] text-[#a1a1aa]">Assigned: Alpha-Node</span>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="bg-[#111113] p-5 rounded-xl border border-[#1f1f23] hover:border-[#6366f1]/50 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-[14px] font-semibold text-[#f8f8f8]">Project Gamma</h3>
+<p class="text-[11px] text-[#a1a1aa] flex items-center gap-1">
+<span class="material-symbols-outlined !text-[12px]">account_tree</span> staging
+                                    </p>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#ffb95f]"></span>
+</div>
+<div class="space-y-3">
+<div class="w-full bg-[#1f1f23] h-1 rounded-full overflow-hidden">
+<div class="bg-[#ffb95f] h-full w-[42%] rounded-full"></div>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="mono text-[#52525b]">bc0192f</span>
+<span class="text-[#a1a1aa]">42% complete</span>
+</div>
+<div class="flex items-center gap-2 pt-2">
+<img alt="Agent" class="w-5 h-5 rounded-full" data-alt="Small round avatar image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdF1s_smS3L4weNlLVyLzt2JI_3tGmL95cxsDspMGxdd1sdKWGg1wzYHGNDdBCujuXcXMa8CX9QmC9SSulrkgJu8M1SNcteqLJ5hSaKF2mpIRQlN8PMrGyxreBpAjom-M9pOYD5RGO7q5xupDhYqxrUraG3cx_TJhmEtZWKSHFkEFK17wzT2tUHrhHB10xFnuUb2NgQJ-AF6ml27a1eSlGG23Dh23puNBHZ_n-_KvXp3Khpf0e2kOtC_saorkSTqntpMTjP5h6vgPK"/>
+<span class="text-[11px] text-[#a1a1aa]">Assigned: Beta-Node</span>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="bg-[#111113] p-5 rounded-xl border border-[#1f1f23] hover:border-[#6366f1]/50 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-[14px] font-semibold text-[#f8f8f8]">Obsidian API</h3>
+<p class="text-[11px] text-[#a1a1aa] flex items-center gap-1">
+<span class="material-symbols-outlined !text-[12px]">account_tree</span> feature/hooks
+                                    </p>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+</div>
+<div class="space-y-3">
+<div class="w-full bg-[#1f1f23] h-1 rounded-full overflow-hidden">
+<div class="bg-[#6366f1] h-full w-[60%] rounded-full"></div>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="mono text-[#52525b]">dd9301a</span>
+<span class="text-[#a1a1aa]">60% complete</span>
+</div>
+<div class="flex items-center gap-2 pt-2">
+<img alt="Agent" class="w-5 h-5 rounded-full" data-alt="Small round avatar image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY0YT4CHyDJ_MS8ZCpX_vXfHSa67QxOqUajrW77ZLHZVo8Mut-5vJjbGUSfO71wZPs3Bl-hVqtxRUZMwDBExpGQk9G13fc0Qmja1JFOlPXqyO236q1fOkmCvhooExSLzFJghYMKNQGZ3ZZgpZ_21gPuw77TNEVOjOyKJVqDPtzH7RO4TIs2EKIfQwjU5R0tErlRpLcxtAjFlCe_zyI2LfN4osBTzMu9vk0Rj0SRZV495nmFiZBmFohiA0B-6HzTkuIiPPKu9TFg1f2"/>
+<span class="text-[11px] text-[#a1a1aa]">Assigned: Gamma-Node</span>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="bg-[#111113] p-5 rounded-xl border border-[#1f1f23] hover:border-[#6366f1]/50 transition-all group border-dashed">
+<div class="h-full flex flex-col items-center justify-center py-6">
+<span class="material-symbols-outlined text-[#52525b] mb-2">add_circle</span>
+<span class="text-[11px] font-medium uppercase tracking-wide text-[#52525b]">Initialize New Node</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Right (40%): Activity Feed -->
+<div class="lg:col-span-4 space-y-6">
+<h2 class="text-[18px] font-medium text-[#f8f8f8]">Activity Stream</h2>
+<div class="bg-[#111113] rounded-xl border border-[#1f1f23] divide-y divide-[#1f1f23]">
+<!-- Feed Item 1 -->
+<div class="p-4 flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-[#6366f1]/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined !text-[18px] text-[#6366f1]">commit</span>
+</div>
+<div class="space-y-1">
+<p class="text-[13px] text-[#f8f8f8] leading-tight">Agent Alpha pushed a new commit to <span class="text-[#6366f1]">main</span></p>
+<p class="text-[11px] text-[#a1a1aa]">2 mins ago • obsidian-core</p>
+</div>
+</div>
+<!-- Feed Item 2 -->
+<div class="p-4 flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-[#ffb95f]/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined !text-[18px] text-[#ffb95f]">warning</span>
+</div>
+<div class="space-y-1">
+<p class="text-[13px] text-[#f8f8f8] leading-tight">Unresolved dependency error in <span class="text-[#ffb95f]">Project Gamma</span></p>
+<p class="text-[11px] text-[#a1a1aa]">14 mins ago • build-system</p>
+</div>
+</div>
+<!-- Feed Item 3 -->
+<div class="p-4 flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-[#10b981]/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined !text-[18px] text-[#10b981]">rocket_launch</span>
+</div>
+<div class="space-y-1">
+<p class="text-[13px] text-[#f8f8f8] leading-tight">Release <span class="text-[#10b981]">v1.0.4-stable</span> successfully deployed</p>
+<p class="text-[11px] text-[#a1a1aa]">1 hour ago • distribution</p>
+</div>
+</div>
+<!-- Feed Item 4 -->
+<div class="p-4 flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-[#6366f1]/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined !text-[18px] text-[#6366f1]">person_add</span>
+</div>
+<div class="space-y-1">
+<p class="text-[13px] text-[#f8f8f8] leading-tight">New agent <span class="text-[#6366f1]">Delta-09</span> provisioned</p>
+<p class="text-[11px] text-[#a1a1aa]">3 hours ago • system</p>
+</div>
+</div>
+<!-- Feed Item 5 -->
+<div class="p-4 flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-[#52525b]/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined !text-[18px] text-[#52525b]">schedule</span>
+</div>
+<div class="space-y-1">
+<p class="text-[13px] text-[#f8f8f8] leading-tight">Scheduled backup complete</p>
+<p class="text-[11px] text-[#a1a1aa]">5 hours ago • maintenance</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom: Commit Activity Bar Chart -->
+<div class="bg-[#111113] p-6 rounded-xl border border-[#1f1f23]">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-[18px] font-medium text-[#f8f8f8]">System Throughput</h2>
+<p class="text-[11px] text-[#a1a1aa] uppercase tracking-wide mt-1">30-day commit density</p>
+</div>
+<div class="flex items-center gap-4 text-[11px] text-[#a1a1aa]">
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#6366f1]/20"></span> Low</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#6366f1]"></span> High</div>
+</div>
+</div>
+<div class="flex items-end justify-between gap-1 h-32 w-full">
+<!-- Generating bars with varying heights and opacities as requested -->
+<div class="w-full h-[45%] bg-[#6366f1]/30 rounded-t-sm"></div>
+<div class="w-full h-[60%] bg-[#6366f1]/40 rounded-t-sm"></div>
+<div class="w-full h-[30%] bg-[#6366f1]/20 rounded-t-sm"></div>
+<div class="w-full h-[80%] bg-[#6366f1]/70 rounded-t-sm"></div>
+<div class="w-full h-[55%] bg-[#6366f1]/40 rounded-t-sm"></div>
+<div class="w-full h-[90%] bg-[#6366f1]/90 rounded-t-sm"></div>
+<div class="w-full h-[100%] bg-[#6366f1] rounded-t-sm"></div>
+<div class="w-full h-[40%] bg-[#6366f1]/30 rounded-t-sm"></div>
+<div class="w-full h-[25%] bg-[#6366f1]/10 rounded-t-sm"></div>
+<div class="w-full h-[50%] bg-[#6366f1]/40 rounded-t-sm"></div>
+<div class="w-full h-[75%] bg-[#6366f1]/60 rounded-t-sm"></div>
+<div class="w-full h-[85%] bg-[#6366f1]/80 rounded-t-sm"></div>
+<div class="w-full h-[45%] bg-[#6366f1]/30 rounded-t-sm"></div>
+<div class="w-full h-[65%] bg-[#6366f1]/50 rounded-t-sm"></div>
+<div class="w-full h-[35%] bg-[#6366f1]/20 rounded-t-sm"></div>
+<div class="w-full h-[95%] bg-[#6366f1]/90 rounded-t-sm"></div>
+<div class="w-full h-[50%] bg-[#6366f1]/40 rounded-t-sm"></div>
+<div class="w-full h-[70%] bg-[#6366f1]/60 rounded-t-sm"></div>
+<div class="w-full h-[40%] bg-[#6366f1]/30 rounded-t-sm"></div>
+<div class="w-full h-[100%] bg-[#6366f1] rounded-t-sm"></div>
+<div class="w-full h-[60%] bg-[#6366f1]/50 rounded-t-sm"></div>
+<div class="w-full h-[80%] bg-[#6366f1]/70 rounded-t-sm"></div>
+<div class="w-full h-[30%] bg-[#6366f1]/20 rounded-t-sm"></div>
+<div class="w-full h-[55%] bg-[#6366f1]/40 rounded-t-sm"></div>
+<div class="w-full h-[90%] bg-[#6366f1]/80 rounded-t-sm"></div>
+<div class="w-full h-[45%] bg-[#6366f1]/30 rounded-t-sm"></div>
+<div class="w-full h-[65%] bg-[#6366f1]/50 rounded-t-sm"></div>
+<div class="w-full h-[35%] bg-[#6366f1]/20 rounded-t-sm"></div>
+<div class="w-full h-[80%] bg-[#6366f1]/70 rounded-t-sm"></div>
+<div class="w-full h-[100%] bg-[#6366f1] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] mono text-[#52525b] uppercase tracking-widest">
+<span>30 Days Ago</span>
+<span>Today</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>
