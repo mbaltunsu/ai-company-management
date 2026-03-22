@@ -1,0 +1,255 @@
+"use client";
+
+import { useParams } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useProject } from "@/hooks/use-projects";
+import { useCommits, useBranches, useReleases } from "@/hooks/use-github";
+import {
+  GitBranch,
+  GitCommit,
+  Tag,
+  Target,
+  FileText,
+  Bot,
+} from "lucide-react";
+
+export default function ProjectDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const { data: project, isLoading } = useProject(id);
+
+  const repoName = project?.githubRepo?.split("/")[1] || null;
+  const { data: commits } = useCommits(repoName);
+  const { data: branches } = useBranches(repoName);
+  const { data: releases } = useReleases(repoName);
+
+  if (isLoading) {
+    return (
+      <>
+        <Header title="Project" />
+        <div className="p-6 space-y-6">
+          <Skeleton className="h-8 w-[200px]" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-[120px] rounded-xl" />
+            <Skeleton className="h-[120px] rounded-xl" />
+            <Skeleton className="h-[120px] rounded-xl" />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!project) {
+    return (
+      <>
+        <Header title="Project Not Found" />
+        <div className="flex items-center justify-center py-24">
+          <p className="text-body-md text-on-surface-variant">Project not found.</p>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Header title={project.name} />
+      <div className="p-6 space-y-6">
+        {/* Project header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-display-sm text-on-background">{project.name}</h1>
+            {project.description && (
+              <p className="mt-1 text-body-md text-on-surface-variant">{project.description}</p>
+            )}
+            <div className="mt-3 flex items-center gap-2">
+              {project.githubRepo && (
+                <Badge variant="secondary" className="text-label-sm font-mono">
+                  {project.githubRepo}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stat cards row */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl bg-surface-container p-5">
+            <div className="flex items-center gap-2 text-label-sm uppercase text-on-surface-variant">
+              <GitCommit className="h-3.5 w-3.5" />
+              Total Commits
+            </div>
+            <p className="mt-2 text-display-sm text-on-background">
+              {commits?.length ?? "—"}
+            </p>
+          </div>
+          <div className="rounded-xl bg-surface-container p-5">
+            <div className="flex items-center gap-2 text-label-sm uppercase text-on-surface-variant">
+              <GitBranch className="h-3.5 w-3.5" />
+              Active Branches
+            </div>
+            <p className="mt-2 text-display-sm text-on-background">
+              {branches?.length ?? "—"}
+            </p>
+          </div>
+          <div className="rounded-xl bg-surface-container p-5">
+            <div className="flex items-center gap-2 text-label-sm uppercase text-on-surface-variant">
+              <Tag className="h-3.5 w-3.5" />
+              Releases
+            </div>
+            <p className="mt-2 text-display-sm text-on-background">
+              {releases?.length ?? "—"}
+            </p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="commits" className="space-y-4">
+          <TabsList className="bg-surface-container">
+            <TabsTrigger value="commits" className="gap-2 text-body-md">
+              <GitCommit className="h-3.5 w-3.5" />
+              Commits
+            </TabsTrigger>
+            <TabsTrigger value="branches" className="gap-2 text-body-md">
+              <GitBranch className="h-3.5 w-3.5" />
+              Branches
+            </TabsTrigger>
+            <TabsTrigger value="releases" className="gap-2 text-body-md">
+              <Tag className="h-3.5 w-3.5" />
+              Releases
+            </TabsTrigger>
+            <TabsTrigger value="agents" className="gap-2 text-body-md">
+              <Bot className="h-3.5 w-3.5" />
+              Agents
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="gap-2 text-body-md">
+              <Target className="h-3.5 w-3.5" />
+              Goals
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Commits tab */}
+          <TabsContent value="commits" className="space-y-3">
+            {commits && commits.length > 0 ? (
+              commits.map((commit, i) => (
+                <div
+                  key={commit.sha}
+                  className={`flex items-start justify-between p-4 rounded-xl ${
+                    i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-body-md text-on-background truncate">{commit.message}</p>
+                    <div className="mt-1 flex items-center gap-3 text-label-sm text-on-surface-variant">
+                      <span className="font-mono">{commit.sha.slice(0, 7)}</span>
+                      <span>{commit.author}</span>
+                    </div>
+                  </div>
+                  <span className="text-label-sm text-on-surface-dim shrink-0 ml-4">
+                    {new Date(commit.date).toLocaleDateString()}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <GitCommit className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">
+                  {repoName ? "No commits found" : "Connect a GitHub repo to see commits"}
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Branches tab */}
+          <TabsContent value="branches" className="space-y-3">
+            {branches && branches.length > 0 ? (
+              branches.map((branch, i) => (
+                <div
+                  key={branch.name}
+                  className={`flex items-center justify-between p-4 rounded-xl ${
+                    i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <GitBranch className="h-4 w-4 text-primary" />
+                    <span className="text-body-md font-mono text-on-background">{branch.name}</span>
+                    {branch.isDefault && (
+                      <Badge className="bg-success/20 text-success text-label-sm">default</Badge>
+                    )}
+                    {branch.isProtected && (
+                      <Badge variant="secondary" className="text-label-sm">protected</Badge>
+                    )}
+                  </div>
+                  <span className="text-label-sm font-mono text-on-surface-variant">
+                    {branch.commitSha.slice(0, 7)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <GitBranch className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">No branches found</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Releases tab */}
+          <TabsContent value="releases" className="space-y-3">
+            {releases && releases.length > 0 ? (
+              releases.map((release, i) => (
+                <div
+                  key={release.id}
+                  className={`p-4 rounded-xl ${
+                    i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Tag className="h-4 w-4 text-primary" />
+                    <span className="text-body-md font-semibold font-mono text-on-background">
+                      {release.tagName}
+                    </span>
+                    <span className="text-body-md text-on-surface-variant">{release.name}</span>
+                    {release.isPrerelease && (
+                      <Badge className="bg-warning/20 text-warning text-label-sm">pre-release</Badge>
+                    )}
+                  </div>
+                  {release.publishedAt && (
+                    <p className="mt-1 ml-7 text-label-sm text-on-surface-dim">
+                      {new Date(release.publishedAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <Tag className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">No releases found</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Agents tab — placeholder */}
+          <TabsContent value="agents">
+            <div className="py-12 text-center">
+              <Bot className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+              <p className="text-body-md text-on-surface-variant">
+                Agent management coming soon
+              </p>
+            </div>
+          </TabsContent>
+
+          {/* Goals tab — placeholder */}
+          <TabsContent value="goals">
+            <div className="py-12 text-center">
+              <Target className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+              <p className="text-body-md text-on-surface-variant">
+                Goals tracking coming soon
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </>
+  );
+}
