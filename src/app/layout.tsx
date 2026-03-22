@@ -1,0 +1,34 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "@/components/providers";
+import { Sidebar } from "@/components/layout/sidebar";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
+export const metadata: Metadata = {
+  title: "CodeOps — Company Management Dashboard",
+  description: "Manage all your Claude Code projects from a single dashboard",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <Providers>
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto">{children}</main>
+          </div>
+        </Providers>
+      </body>
+    </html>
+  );
+}
