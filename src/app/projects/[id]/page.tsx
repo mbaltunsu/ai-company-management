@@ -15,6 +15,8 @@ import {
   FileText,
   Bot,
 } from "lucide-react";
+import { CommitGraph } from "@/components/charts/commit-graph";
+import { ReleaseTimeline } from "@/components/charts/release-timeline";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -130,7 +132,15 @@ export default function ProjectDetailPage() {
           </TabsList>
 
           {/* Commits tab */}
-          <TabsContent value="commits" className="space-y-3">
+          <TabsContent value="commits" className="space-y-4">
+            {commits && commits.length > 0 && (
+              <div className="rounded-xl bg-surface-container p-5">
+                <h3 className="text-label-sm uppercase text-on-surface-variant mb-3">
+                  Commit Activity
+                </h3>
+                <CommitGraph commits={commits} />
+              </div>
+            )}
             {commits && commits.length > 0 ? (
               commits.map((commit, i) => (
                 <div
@@ -195,38 +205,13 @@ export default function ProjectDetailPage() {
           </TabsContent>
 
           {/* Releases tab */}
-          <TabsContent value="releases" className="space-y-3">
-            {releases && releases.length > 0 ? (
-              releases.map((release, i) => (
-                <div
-                  key={release.id}
-                  className={`p-4 rounded-xl ${
-                    i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Tag className="h-4 w-4 text-primary" />
-                    <span className="text-body-md font-semibold font-mono text-on-background">
-                      {release.tagName}
-                    </span>
-                    <span className="text-body-md text-on-surface-variant">{release.name}</span>
-                    {release.isPrerelease && (
-                      <Badge className="bg-warning/20 text-warning text-label-sm">pre-release</Badge>
-                    )}
-                  </div>
-                  {release.publishedAt && (
-                    <p className="mt-1 ml-7 text-label-sm text-on-surface-dim">
-                      {new Date(release.publishedAt).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <Tag className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
-                <p className="text-body-md text-on-surface-variant">No releases found</p>
-              </div>
-            )}
+          <TabsContent value="releases">
+            <div className="rounded-xl bg-surface-container p-5">
+              <h3 className="text-label-sm uppercase text-on-surface-variant mb-4">
+                Release Timeline
+              </h3>
+              <ReleaseTimeline releases={releases || []} />
+            </div>
           </TabsContent>
 
           {/* Agents tab — placeholder */}
