@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   FolderKanban,
+  Network,
   Bot,
   CircleDot,
   Target,
@@ -21,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/graph", label: "Network", icon: Network },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/issues", label: "Issues", icon: CircleDot },
   { href: "/goals", label: "Goals", icon: Target },
