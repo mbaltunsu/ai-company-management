@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createGitHubService } from "@/lib/github";
+import { createGitHubServiceFromSession } from "@/lib/github";
 import { createRequestLogger } from "@/lib/logger";
 import { createIssueSchema } from "@/lib/validators";
+import { auth } from "@/lib/auth";
 
 const log = createRequestLogger("/api/github/issues");
 
@@ -15,11 +16,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const github = createGitHubService();
+    const session = await auth();
+    if (!session?.accessToken) {
+      return NextResponse.json(
+        { data: null, error: "GitHub not connected" },
+        { status: 401 }
+      );
+    }
+
+    const github = createGitHubServiceFromSession(session);
     if (!github) {
       return NextResponse.json(
-        { data: null, error: "GitHub credentials not configured" },
-        { status: 503 }
+        { data: null, error: "GitHub not connected" },
+        { status: 401 }
       );
     }
 
@@ -53,11 +62,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const github = createGitHubService();
+    const session = await auth();
+    if (!session?.accessToken) {
+      return NextResponse.json(
+        { data: null, error: "GitHub not connected" },
+        { status: 401 }
+      );
+    }
+
+    const github = createGitHubServiceFromSession(session);
     if (!github) {
       return NextResponse.json(
-        { data: null, error: "GitHub credentials not configured" },
-        { status: 503 }
+        { data: null, error: "GitHub not connected" },
+        { status: 401 }
       );
     }
 

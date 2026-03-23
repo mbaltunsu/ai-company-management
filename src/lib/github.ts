@@ -218,18 +218,54 @@ export class GitHubService {
       resetAt: new Date(data.rate.reset * 1000).toISOString(),
     };
   }
+
+  async getAuthenticatedUser(): Promise<{
+    login: string;
+    avatar: string;
+    name: string;
+    publicRepos: number;
+  }> {
+    log.info("Fetching authenticated user");
+    const { data } = await this.octokit.users.getAuthenticated();
+    return {
+      login: data.login,
+      avatar: data.avatar_url,
+      name: data.name ?? data.login,
+      publicRepos: data.public_repos,
+    };
+  }
 }
 
 /**
  * Create a GitHubService instance from environment variables.
  * Returns null if credentials are not configured.
+ * Kept for non-authenticated contexts such as setup scripts.
  */
-export function createGitHubService(): GitHubService | null {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_OWNER;
+export function createGitHubService(token?: string, owner?: string): GitHubService | null {
+  const resolvedToken = token ?? process.env.GITHUB_TOKEN;
+  const resolvedOwner = owner ?? process.env.GITHUB_OWNER;
+
+  if (!resolvedToken || !resolvedOwner) {
+    log.warn("GitHub credentials not configured");
+    return null;
+  }
+
+  return new GitHubService(resolvedToken, resolvedOwner);
+}
+
+/**
+ * Create a GitHubService instance from a NextAuth session.
+ * Returns null if the session has no access token or GitHub user.
+ */
+export function createGitHubServiceFromSession(session: {
+  accessToken?: string;
+  githubUser?: { login?: string };
+} | null): GitHubService | null {
+  const token = session?.accessToken;
+  const owner = session?.githubUser?.login;
 
   if (!token || !owner) {
-    log.warn("GitHub credentials not configured");
+    log.warn("No GitHub session token available");
     return null;
   }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { FolderOpen, ScanLine } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { StatsBar } from "@/components/dashboard/stats-bar";
@@ -8,24 +9,115 @@ import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { ProjectHealth } from "@/components/dashboard/project-health";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useProjects, useScanProjects } from "@/hooks/use-projects";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import type { DashboardStats, ActivityEntry, ProjectHealthInfo } from "@/types";
 
 // ---------------------------------------------------------------------------
 // Placeholder data — replace with real API endpoints when available
 // ---------------------------------------------------------------------------
 
-const PLACEHOLDER_STATS: DashboardStats = {
-  totalProjects: 0,
-  activeAgents: 0,
-  openIssues: 0,
-  commitsThisWeek: 0,
-};
-
 const PLACEHOLDER_ACTIVITIES: ActivityEntry[] = [];
 
 const PLACEHOLDER_HEALTH: ProjectHealthInfo[] = [];
+
+// ---------------------------------------------------------------------------
+// Scan dialog
+// ---------------------------------------------------------------------------
+
+function ScanDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const defaultPath = process.env.NEXT_PUBLIC_DEFAULT_SCAN_PATH ?? "";
+  const [scanPath, setScanPath] = useState(defaultPath);
+  const scanMutation = useScanProjects();
+
+  function handleOpenChange(next: boolean) {
+    if (!next) setScanPath(defaultPath);
+    onOpenChange(next);
+  }
+
+  function handleScan(e: React.FormEvent) {
+    e.preventDefault();
+    const root = scanPath.trim();
+    if (!root) return;
+
+    scanMutation.mutate(
+      { rootPath: root },
+      {
+        onSuccess: () => {
+          toast.success("Directory scanned — projects updated");
+          handleOpenChange(false);
+        },
+        onError: (err: Error) => {
+          toast.error(err.message);
+        },
+      }
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="bg-surface-container ghost-border sm:max-w-sm text-on-background">
+        <DialogHeader>
+          <DialogTitle className="text-headline-sm text-on-background">
+            Scan Directory
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleScan} className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <label htmlFor="dashboard-scan-path" className="text-label-sm text-on-surface-variant">
+              Root Path
+            </label>
+            <Input
+              id="dashboard-scan-path"
+              value={scanPath}
+              onChange={(e) => setScanPath(e.target.value)}
+              placeholder="/home/user/projects"
+              className="bg-surface-container-high border-outline-variant text-on-background placeholder:text-on-surface-dim font-mono focus-visible:ring-primary"
+              disabled={scanMutation.isPending}
+              autoFocus
+            />
+            <p className="text-label-sm text-on-surface-dim">
+              Scans recursively for Claude Code projects.
+            </p>
+          </div>
+          <DialogFooter className="pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => handleOpenChange(false)}
+              className="text-on-surface-variant"
+              disabled={scanMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={scanMutation.isPending || !scanPath.trim()}
+              className="bg-primary text-white hover:bg-primary/90"
+            >
+              {scanMutation.isPending ? "Scanning..." : "Scan"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Loading skeletons
@@ -91,23 +183,17 @@ function EmptyProjectsState({ onScan }: { onScan: () => void }) {
 export default function DashboardPage() {
   const { data: projects, isLoading, error } = useProjects();
   const scanMutation = useScanProjects();
-
-  const handleScan = () => {
-    // Default to the current working directory — user can configure this in settings
-    scanMutation.mutate({ rootPath: process.env.NEXT_PUBLIC_DEFAULT_SCAN_PATH ?? "." });
-  };
+  const [scanOpen, setScanOpen] = useState(false);
 
   const hasProjects = projects && projects.length > 0;
 
-  // Build stats from real project data when available
-  const stats: DashboardStats = hasProjects
-    ? {
-        totalProjects: projects.length,
-        activeAgents: PLACEHOLDER_STATS.activeAgents,
-        openIssues: PLACEHOLDER_STATS.openIssues,
-        commitsThisWeek: PLACEHOLDER_STATS.commitsThisWeek,
-      }
-    : PLACEHOLDER_STATS;
+  // Aggregate stats from real project data
+  const stats: DashboardStats = {
+    totalProjects: projects?.length ?? 0,
+    activeAgents: 0,   // requires per-project agent fetch — deferred
+    openIssues: 0,     // requires per-project GitHub calls — deferred
+    commitsThisWeek: 0, // requires per-project GitHub calls — deferred
+  };
 
   return (
     <>
@@ -153,7 +239,7 @@ export default function DashboardPage() {
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 text-on-surface-variant hover:text-on-background h-8 px-3"
-                onClick={handleScan}
+                onClick={() => setScanOpen(true)}
                 disabled={scanMutation.isPending}
               >
                 <ScanLine className="h-3.5 w-3.5" />
@@ -179,7 +265,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : !hasProjects ? (
-            <EmptyProjectsState onScan={handleScan} />
+            <EmptyProjectsState onScan={() => setScanOpen(true)} />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {projects.map((project) => (
@@ -196,6 +282,8 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
+
+      <ScanDialog open={scanOpen} onOpenChange={setScanOpen} />
     </>
   );
 }

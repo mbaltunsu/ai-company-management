@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CircleDot, ChevronDown } from "lucide-react";
+import { CircleDot, ChevronDown, Plus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,11 +14,13 @@ import {
 import { useProjects } from "@/hooks/use-projects";
 import { useIssues } from "@/hooks/use-github";
 import { IssueRow } from "@/components/issues/issue-row";
+import { CreateIssueDialog } from "@/components/issues/create-issue-dialog";
 import type { Project } from "@/types";
 
 export default function IssuesPage() {
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const repoName = selectedProject?.githubRepo?.split("/")[1] || null;
   const { data: issues, isLoading: loadingIssues } = useIssues(repoName);
@@ -29,7 +31,7 @@ export default function IssuesPage() {
     <>
       <Header title="Issues & Goals" />
       <div className="p-6 space-y-6">
-        {/* Project selector */}
+        {/* Project selector + New Issue button */}
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -72,6 +74,18 @@ export default function IssuesPage() {
               {issues.length} open issues
             </span>
           )}
+
+          {/* New Issue — only shown when a project with a repo is selected */}
+          {selectedProject?.githubRepo && (
+            <Button
+              size="sm"
+              className="gap-2 ml-auto"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-body-md">New Issue</span>
+            </Button>
+          )}
         </div>
 
         {/* Issues list */}
@@ -106,6 +120,14 @@ export default function IssuesPage() {
           </div>
         )}
       </div>
+
+      {selectedProject?.githubRepo && (
+        <CreateIssueDialog
+          repo={selectedProject.githubRepo}
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+        />
+      )}
     </>
   );
 }
