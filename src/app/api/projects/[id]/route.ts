@@ -2,18 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createRequestLogger } from "@/lib/logger";
 import { updateProjectSchema } from "@/lib/validators";
-import { projectService } from "@/lib/projects";
-import type { ApiResult, Project, ProjectConfig } from "@/types";
+import { auth } from "@/lib/auth";
+import { createGitHubServiceFromSession } from "@/lib/github";
+import type { ApiResult, Project, Agent } from "@/types";
 
 interface EnrichedProject extends Project {
-  config: ProjectConfig | null;
-  gitInfo: { branch: string | null; hasGit: boolean } | null;
-  readme: string | null;
+  agents: Agent[];
 }
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-// GET /api/projects/[id] — single project from Supabase enriched with filesystem data
+// GET /api/projects/[id] — single project from Supabase enriched with GitHub agents
 export async function GET(
   _request: NextRequest,
   context: RouteContext
@@ -50,31 +49,28 @@ export async function GET(
       updatedAt: data.updated_at,
     };
 
-    // Enrich with filesystem data — failures are non-fatal
-    let config: ProjectConfig | null = null;
-    let gitInfo: { branch: string | null; hasGit: boolean } | null = null;
-    let readme: string | null = null;
+    // Fetch agents from GitHub if a repo is linked — failure is non-fatal
+    let agents: Agent[] = [];
 
-    try {
-      config = await projectService.getProjectConfig(project.path);
-    } catch (fsErr) {
-      log.warn({ fsErr, path: project.path }, "Could not read project config from filesystem");
+    if (project.githubRepo) {
+      const repoName = project.githubRepo.includes("/")
+        ? project.githubRepo.split("/").pop()!
+        : project.githubRepo;
+
+      try {
+        const session = await auth();
+        const github = createGitHubServiceFromSession(session);
+        if (github) {
+          agents = await github.getRepoAgents(repoName);
+          log.info({ id, repo: repoName, count: agents.length }, "Agents fetched from GitHub");
+        }
+      } catch (ghErr) {
+        log.warn({ ghErr, repo: repoName }, "Could not fetch agents from GitHub");
+      }
     }
 
-    try {
-      gitInfo = await projectService.getGitInfo(project.path);
-    } catch (fsErr) {
-      log.warn({ fsErr, path: project.path }, "Could not read git info from filesystem");
-    }
-
-    try {
-      readme = await projectService.getReadme(project.path);
-    } catch (fsErr) {
-      log.warn({ fsErr, path: project.path }, "Could not read README from filesystem");
-    }
-
-    log.info({ id }, "Project fetched and enriched successfully");
-    return NextResponse.json({ data: { ...project, config, gitInfo, readme }, error: null });
+    log.info({ id }, "Project fetched successfully");
+    return NextResponse.json({ data: { ...project, agents }, error: null });
   } catch (err) {
     log.error({ err, id }, "Unexpected error fetching project");
     return NextResponse.json(

@@ -1,58 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
 import { logger } from "./logger";
-import type { DiscoveredProject, ProjectConfig, Agent, Rule } from "@/types";
+import type { ProjectConfig, Agent, Rule } from "@/types";
 
 const log = logger.child({ service: "ProjectService" });
 
 export class ProjectService {
-  /**
-   * Scan a root directory for projects that contain .claude/ folders
-   */
-  async scanDirectory(rootPath: string): Promise<DiscoveredProject[]> {
-    log.info({ rootPath }, "Scanning directory for projects");
-    const discovered: DiscoveredProject[] = [];
-
-    try {
-      const entries = await fs.readdir(rootPath, { withFileTypes: true });
-
-      for (const entry of entries) {
-        if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules") {
-          continue;
-        }
-
-        const projectPath = path.join(rootPath, entry.name);
-        const claudeDir = path.join(projectPath, ".claude");
-
-        try {
-          await fs.access(claudeDir);
-        } catch {
-          continue;
-        }
-
-        const hasGit = await this.exists(path.join(projectPath, ".git"));
-        const agents = await this.listMarkdownFiles(path.join(claudeDir, "agents"));
-        const rules = await this.listMarkdownFiles(path.join(claudeDir, "rules"));
-
-        discovered.push({
-          name: entry.name,
-          path: projectPath,
-          hasGit,
-          hasClaudeConfig: true,
-          agentCount: agents.length,
-          ruleCount: rules.length,
-        });
-      }
-
-      log.info({ count: discovered.length, rootPath }, "Scan complete");
-    } catch (err) {
-      log.error({ err, rootPath }, "Failed to scan directory");
-      throw new Error(`Failed to scan directory: ${rootPath}`);
-    }
-
-    return discovered;
-  }
-
   /**
    * Read the full .claude/ config for a project
    */

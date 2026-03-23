@@ -1,25 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { FolderOpen, ScanLine } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { StatsBar } from "@/components/dashboard/stats-bar";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { ProjectHealth } from "@/components/dashboard/project-health";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useProjects, useScanProjects } from "@/hooks/use-projects";
+import { useProjects } from "@/hooks/use-projects";
+import { ImportProjectDialog } from "@/components/projects/import-project-dialog";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import type { DashboardStats, ActivityEntry, ProjectHealthInfo } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -29,95 +19,6 @@ import type { DashboardStats, ActivityEntry, ProjectHealthInfo } from "@/types";
 const PLACEHOLDER_ACTIVITIES: ActivityEntry[] = [];
 
 const PLACEHOLDER_HEALTH: ProjectHealthInfo[] = [];
-
-// ---------------------------------------------------------------------------
-// Scan dialog
-// ---------------------------------------------------------------------------
-
-function ScanDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const defaultPath = process.env.NEXT_PUBLIC_DEFAULT_SCAN_PATH ?? "";
-  const [scanPath, setScanPath] = useState(defaultPath);
-  const scanMutation = useScanProjects();
-
-  function handleOpenChange(next: boolean) {
-    if (!next) setScanPath(defaultPath);
-    onOpenChange(next);
-  }
-
-  function handleScan(e: React.FormEvent) {
-    e.preventDefault();
-    const root = scanPath.trim();
-    if (!root) return;
-
-    scanMutation.mutate(
-      { rootPath: root },
-      {
-        onSuccess: () => {
-          toast.success("Directory scanned — projects updated");
-          handleOpenChange(false);
-        },
-        onError: (err: Error) => {
-          toast.error(err.message);
-        },
-      }
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-surface-container ghost-border sm:max-w-sm text-on-background">
-        <DialogHeader>
-          <DialogTitle className="text-headline-sm text-on-background">
-            Scan Directory
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleScan} className="space-y-4 mt-2">
-          <div className="space-y-1.5">
-            <label htmlFor="dashboard-scan-path" className="text-label-sm text-on-surface-variant">
-              Root Path
-            </label>
-            <Input
-              id="dashboard-scan-path"
-              value={scanPath}
-              onChange={(e) => setScanPath(e.target.value)}
-              placeholder="/home/user/projects"
-              className="bg-surface-container-high border-outline-variant text-on-background placeholder:text-on-surface-dim font-mono focus-visible:ring-primary"
-              disabled={scanMutation.isPending}
-              autoFocus
-            />
-            <p className="text-label-sm text-on-surface-dim">
-              Scans recursively for Claude Code projects.
-            </p>
-          </div>
-          <DialogFooter className="pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => handleOpenChange(false)}
-              className="text-on-surface-variant"
-              disabled={scanMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={scanMutation.isPending || !scanPath.trim()}
-              className="bg-primary text-white hover:bg-primary/90"
-            >
-              {scanMutation.isPending ? "Scanning..." : "Scan"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Loading skeletons
@@ -152,7 +53,7 @@ function ProjectCardSkeleton() {
 // Empty state
 // ---------------------------------------------------------------------------
 
-function EmptyProjectsState({ onScan }: { onScan: () => void }) {
+function EmptyProjectsState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container border border-outline-variant/50 py-24 gap-6">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-container-high border border-outline-variant/50">
@@ -161,17 +62,10 @@ function EmptyProjectsState({ onScan }: { onScan: () => void }) {
       <div className="text-center space-y-2 max-w-[300px]">
         <p className="text-headline-sm text-on-background">No projects yet</p>
         <p className="text-body-md text-on-surface-variant">
-          Scan a directory to auto-discover your Claude Code projects and bring them into the dashboard.
+          Import a GitHub repository to bring your projects into the dashboard.
         </p>
       </div>
-      <Button
-        variant="outline"
-        className="gap-2 border-outline-variant text-on-surface-variant hover:text-on-background hover:bg-surface-container-high"
-        onClick={onScan}
-      >
-        <ScanLine className="h-4 w-4" />
-        Scan for Projects
-      </Button>
+      <ImportProjectDialog />
     </div>
   );
 }
@@ -182,8 +76,6 @@ function EmptyProjectsState({ onScan }: { onScan: () => void }) {
 
 export default function DashboardPage() {
   const { data: projects, isLoading, error } = useProjects();
-  const scanMutation = useScanProjects();
-  const [scanOpen, setScanOpen] = useState(false);
 
   const hasProjects = projects && projects.length > 0;
 
@@ -229,25 +121,11 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-headline-sm text-on-background">Projects</h2>
 
-            <div className="flex items-center gap-2">
-              {hasProjects && (
-                <span className="text-label-sm text-on-surface-dim uppercase tracking-widest">
-                  {projects.length} registered
-                </span>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-on-surface-variant hover:text-on-background h-8 px-3"
-                onClick={() => setScanOpen(true)}
-                disabled={scanMutation.isPending}
-              >
-                <ScanLine className="h-3.5 w-3.5" />
-                <span className="text-label-sm">
-                  {scanMutation.isPending ? "Scanning..." : "Scan"}
-                </span>
-              </Button>
-            </div>
+            {hasProjects && (
+              <span className="text-label-sm text-on-surface-dim uppercase tracking-widest">
+                {projects.length} registered
+              </span>
+            )}
           </div>
 
           {error && (
@@ -265,7 +143,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : !hasProjects ? (
-            <EmptyProjectsState onScan={() => setScanOpen(true)} />
+            <EmptyProjectsState />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {projects.map((project) => (
@@ -282,8 +160,6 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
-
-      <ScanDialog open={scanOpen} onOpenChange={setScanOpen} />
     </>
   );
 }
