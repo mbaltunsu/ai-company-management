@@ -72,6 +72,8 @@ export function useProject(id: string) {
     queryKey: projectKeys.detail(id),
     queryFn: () => fetchProject(id),
     enabled: Boolean(id),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 

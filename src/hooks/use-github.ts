@@ -29,6 +29,8 @@ export function useCommits(repo: string | null, options?: { since?: string; unti
       return fetchApi<GitHubCommit[]>(`/api/github/commits?${params}`);
     },
     enabled: !!repo,
+    staleTime: 0,
+    refetchOnMount: "always",
     refetchInterval: 60 * 1000,
   });
 }
@@ -38,6 +40,8 @@ export function useBranches(repo: string | null) {
     queryKey: ["github", "branches", repo],
     queryFn: () => fetchApi<GitHubBranch[]>(`/api/github/branches?repo=${repo}`),
     enabled: !!repo,
+    staleTime: 0,
+    refetchOnMount: "always",
     refetchInterval: 60 * 1000,
   });
 }
@@ -47,6 +51,8 @@ export function useReleases(repo: string | null) {
     queryKey: ["github", "releases", repo],
     queryFn: () => fetchApi<GitHubRelease[]>(`/api/github/releases?repo=${repo}`),
     enabled: !!repo,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
