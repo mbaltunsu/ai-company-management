@@ -175,6 +175,8 @@ See [TEAM.md](TEAM.md) for the full agent roster.
 - git-rules.md
 - project-context.md
 - tech-stack.md
+- Always use skills or agents that are specialized in frontend, UI/UX design when designing or developing the layout if they exist
+-
 
 ### Team Collaboration Guidelines
 
@@ -192,4 +194,7 @@ See [TEAM.md](TEAM.md) for the full agent roster.
 
 - Do not make text selectable in apps unless stated otherwise
 - Do not assume, ask when you need clarification
--
+
+## DOs
+
+Always mobile first responsive app approach for frontend part of applications

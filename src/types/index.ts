@@ -204,3 +204,64 @@ export interface ApiError {
 }
 
 export type ApiResult<T> = ApiResponse<T> | ApiError;
+
+// ============================================================
+// Task Types
+// ============================================================
+
+export interface Task {
+  id: string;
+  projectId: string | null;
+  title: string;
+  description: string | null;
+  status: "backlog" | "in_progress" | "in_review" | "done";
+  assignedAgents: string[];
+  suggestedPrompt: string | null;
+  priority: "urgent" | "high" | "normal" | "low";
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Skill Types
+// ============================================================
+
+export interface Skill {
+  id: string;
+  projectId: string | null;
+  name: string;
+  description: string | null;
+  whenToUse: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Claude Suggestion Types
+// ============================================================
+
+export interface ClaudeSuggestion {
+  suggestedAgents: string[];
+  prompt: string;
+}
+
+// ============================================================
+// Graph Visualization Types
+// ============================================================
+
+export interface GraphNode {
+  id: string;
+  type: "project" | "agent";
+  label: string;
+  projectId?: string;
+  size: number;
+  color: string;
+  glow?: string;
+  val?: number;
+}
+
+export interface GraphLink {
+  source: string;
+  target: string;
+}

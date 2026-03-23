@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { repo, title, body: issueBody, labels } = parsed.data;
-    const issue = await github.createIssue(repo, title, issueBody, labels);
+    const repoName = repo.includes("/") ? repo.split("/").pop()! : repo;
+    const issue = await github.createIssue(repoName, title, issueBody, labels);
     log.info({ repo, issueNumber: issue.number }, "Issue created");
 
     return NextResponse.json({ data: issue, error: null }, { status: 201 });
