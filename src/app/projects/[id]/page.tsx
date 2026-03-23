@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/dialog";
 import { useProject, useDeleteProject } from "@/hooks/use-projects";
 import { useCommits, useBranches, useReleases } from "@/hooks/use-github";
+import { useGitHubAgents } from "@/hooks/use-agents";
+import { useGoals, useUpdateGoal, useDeleteGoal } from "@/hooks/use-goals";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
   GitBranch,
@@ -87,9 +90,14 @@ export default function ProjectDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const repoName = project?.githubRepo?.split("/")[1] || null;
+  const fullRepo = project?.githubRepo || null;
   const { data: commits } = useCommits(repoName);
   const { data: branches } = useBranches(repoName);
   const { data: releases } = useReleases(repoName);
+  const { data: agents, isLoading: agentsLoading } = useGitHubAgents(fullRepo);
+  const { data: goals, isLoading: goalsLoading } = useGoals(id);
+  const updateGoalMutation = useUpdateGoal();
+  const deleteGoalMutation = useDeleteGoal();
 
   function handleDelete() {
     deleteMutation.mutate(
@@ -311,24 +319,139 @@ export default function ProjectDetailPage() {
             </div>
           </TabsContent>
 
-          {/* Agents tab — placeholder */}
-          <TabsContent value="agents">
-            <div className="py-12 text-center">
-              <Bot className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
-              <p className="text-body-md text-on-surface-variant">
-                Agent management coming soon
-              </p>
-            </div>
+          {/* Agents tab */}
+          <TabsContent value="agents" className="space-y-3">
+            {agentsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-[80px] rounded-xl" />
+                ))}
+              </div>
+            ) : agents && agents.length > 0 ? (
+              <PaginatedList
+                items={agents}
+                pageSize={10}
+                renderItem={(agent, i) => (
+                  <div
+                    key={agent.name}
+                    className={`p-4 rounded-xl ${
+                      i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Bot className="h-4 w-4 text-primary shrink-0" />
+                          <span className="text-body-md font-semibold text-on-background">
+                            {agent.name}
+                          </span>
+                        </div>
+                        {agent.description && (
+                          <p className="mt-1 text-body-md text-on-surface-variant line-clamp-2 ml-6">
+                            {agent.description}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-label-sm font-mono text-on-surface-dim shrink-0 ml-4">
+                        {agent.filename}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              />
+            ) : (
+              <div className="py-12 text-center">
+                <Bot className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">
+                  {fullRepo
+                    ? "No agents found in .claude/agents/"
+                    : "Connect a GitHub repo to see agents"}
+                </p>
+              </div>
+            )}
           </TabsContent>
 
-          {/* Goals tab — placeholder */}
-          <TabsContent value="goals">
-            <div className="py-12 text-center">
-              <Target className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
-              <p className="text-body-md text-on-surface-variant">
-                Goals tracking coming soon
-              </p>
-            </div>
+          {/* Goals tab */}
+          <TabsContent value="goals" className="space-y-3">
+            {goalsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-[80px] rounded-xl" />
+                ))}
+              </div>
+            ) : goals && goals.length > 0 ? (
+              <PaginatedList
+                items={goals}
+                pageSize={10}
+                renderItem={(goal, i) => (
+                  <div
+                    key={goal.id}
+                    className={`p-4 rounded-xl ${
+                      i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-body-md font-semibold text-on-background">
+                            {goal.title}
+                          </span>
+                          <Badge
+                            className={`text-label-sm ${
+                              goal.status === "completed"
+                                ? "bg-success/20 text-success"
+                                : goal.status === "archived"
+                                ? "bg-muted text-on-surface-dim"
+                                : "bg-primary/20 text-primary"
+                            }`}
+                          >
+                            {goal.status}
+                          </Badge>
+                        </div>
+                        {goal.description && (
+                          <p className="mt-1 text-body-md text-on-surface-variant line-clamp-1">
+                            {goal.description}
+                          </p>
+                        )}
+                        <div className="mt-2 flex items-center gap-3">
+                          <Progress value={goal.progress} className="h-1.5 flex-1 max-w-[200px]" />
+                          <span className="text-label-sm text-on-surface-variant">
+                            {goal.progress}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 ml-4">
+                        {goal.dueDate && (
+                          <span className="text-label-sm font-mono text-on-surface-dim mr-3">
+                            {new Date(goal.dueDate).toLocaleDateString()}
+                          </span>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-on-surface-variant hover:text-destructive"
+                          onClick={() =>
+                            deleteGoalMutation.mutate(
+                              { id: goal.id, projectId: id },
+                              { onSuccess: () => toast.success("Goal deleted") }
+                            )
+                          }
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            ) : (
+              <div className="py-12 text-center">
+                <Target className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">
+                  No goals yet
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
