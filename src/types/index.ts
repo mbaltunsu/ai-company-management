@@ -186,6 +186,7 @@ export interface AppSettings {
   scanDirectories: string[];
   logLevel: string;
   refreshInterval: number;
+  claudeApiKey?: string;
 }
 
 // ============================================================

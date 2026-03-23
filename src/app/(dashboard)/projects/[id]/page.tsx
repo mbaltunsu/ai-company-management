@@ -18,6 +18,7 @@ import { useProject, useDeleteProject } from "@/hooks/use-projects";
 import { useCommits, useBranches, useReleases } from "@/hooks/use-github";
 import { useGitHubAgents } from "@/hooks/use-agents";
 import { useGoals, useUpdateGoal, useDeleteGoal } from "@/hooks/use-goals";
+import { useSkills, useDeleteSkill } from "@/hooks/use-skills";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
@@ -27,7 +28,10 @@ import {
   Target,
   Bot,
   Trash2,
+  Wand2,
+  Plus,
 } from "lucide-react";
+import { CreateSkillDialog } from "@/components/skills/create-skill-dialog";
 import { CommitGraph } from "@/components/charts/commit-graph";
 import { ReleaseTimeline } from "@/components/charts/release-timeline";
 import { PaginatedList } from "@/components/ui/paginated-list";
@@ -98,6 +102,9 @@ export default function ProjectDetailPage() {
   const { data: goals, isLoading: goalsLoading } = useGoals(id);
   const updateGoalMutation = useUpdateGoal();
   const deleteGoalMutation = useDeleteGoal();
+  const { data: skills, isLoading: skillsLoading } = useSkills(id);
+  const deleteSkillMutation = useDeleteSkill();
+  const [skillDialogOpen, setSkillDialogOpen] = useState(false);
 
   function handleDelete() {
     deleteMutation.mutate(
@@ -227,6 +234,10 @@ export default function ProjectDetailPage() {
             <TabsTrigger value="goals" className="gap-2 text-body-md">
               <Target className="h-3.5 w-3.5" />
               Goals
+            </TabsTrigger>
+            <TabsTrigger value="skills" className="gap-2 text-body-md">
+              <Wand2 className="h-3.5 w-3.5" />
+              Skills
             </TabsTrigger>
           </TabsList>
 
@@ -453,8 +464,84 @@ export default function ProjectDetailPage() {
               </div>
             )}
           </TabsContent>
+          {/* Skills tab */}
+          <TabsContent value="skills" className="space-y-3">
+            <div className="flex items-center justify-end">
+              <Button
+                size="sm"
+                onClick={() => setSkillDialogOpen(true)}
+                className="gap-2 bg-primary text-white hover:bg-primary/90"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New Skill
+              </Button>
+            </div>
+            {skillsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-[80px] rounded-xl" />
+                ))}
+              </div>
+            ) : skills && skills.length > 0 ? (
+              <div className="space-y-2">
+                {skills.map((skill, i) => (
+                  <div
+                    key={skill.id}
+                    className={`flex items-start justify-between p-4 rounded-xl ${
+                      i % 2 === 0 ? "bg-surface-container" : "bg-surface-dim"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Wand2 className="h-4 w-4 text-primary shrink-0" />
+                        <span className="text-body-md font-semibold text-on-background">
+                          {skill.name}
+                        </span>
+                      </div>
+                      {skill.description && (
+                        <p className="mt-1 text-body-md text-on-surface-variant line-clamp-2 ml-6">
+                          {skill.description}
+                        </p>
+                      )}
+                      {skill.whenToUse && (
+                        <p className="mt-1 text-label-sm text-on-surface-dim ml-6">
+                          When to use: {skill.whenToUse}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 shrink-0 ml-4 text-on-surface-variant hover:text-destructive"
+                      onClick={() =>
+                        deleteSkillMutation.mutate(
+                          { id: skill.id, projectId: skill.projectId },
+                          { onSuccess: () => toast.success("Skill deleted") }
+                        )
+                      }
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <Wand2 className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">
+                  No skills yet for this project
+                </p>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
+
+      <CreateSkillDialog
+        open={skillDialogOpen}
+        onOpenChange={setSkillDialogOpen}
+        defaultProjectId={id}
+      />
 
       <DeleteConfirmDialog
         projectName={project.name}

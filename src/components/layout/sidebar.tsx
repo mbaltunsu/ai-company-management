@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Wand2,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/graph", label: "Network", icon: Network },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/skills", label: "Skills", icon: Wand2 },
   { href: "/issues", label: "Issues", icon: CircleDot },
   { href: "/goals", label: "Goals", icon: Target },
 ];
