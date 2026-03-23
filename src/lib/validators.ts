@@ -6,7 +6,7 @@ import { z } from "zod/v4";
 
 export const createProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
-  path: z.string().min(1, "Project path is required"),
+  path: z.string().default(""),
   githubRepo: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
 });

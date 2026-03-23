@@ -76,12 +76,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiResult
   try {
     log.info({ name, path }, "Registering new project");
 
+    // If no local path provided (GitHub import), use the repo name as a unique placeholder
+    const resolvedPath = path || (githubRepo ? `github:${githubRepo}` : name);
+
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("projects")
       .insert({
         name,
-        path,
+        path: resolvedPath,
         github_repo: githubRepo ?? null,
         description: description ?? null,
         is_auto_discovered: false,
