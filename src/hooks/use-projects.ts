@@ -60,21 +60,6 @@ async function createProject(payload: {
   return json.data;
 }
 
-async function scanProjects(rootPath: string): Promise<unknown> {
-  const res = await fetch("/api/projects/scan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rootPath }),
-  });
-
-  if (!res.ok) throw new Error(`Scan failed: ${res.statusText}`);
-
-  const json: ApiResult<unknown> = await res.json();
-  if (json.error) throw new Error(json.error);
-
-  return json.data;
-}
-
 export function useProjects() {
   return useQuery({
     queryKey: projectKeys.all,
@@ -87,17 +72,6 @@ export function useProject(id: string) {
     queryKey: projectKeys.detail(id),
     queryFn: () => fetchProject(id),
     enabled: Boolean(id),
-  });
-}
-
-export function useScanProjects() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ rootPath }: { rootPath: string }) => scanProjects(rootPath),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.all });
-    },
   });
 }
 

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { CommitGraph } from "@/components/charts/commit-graph";
 import { ReleaseTimeline } from "@/components/charts/release-timeline";
+import { PaginatedList } from "@/components/ui/paginated-list";
 
 function DeleteConfirmDialog({
   projectName,
@@ -231,8 +232,18 @@ export default function ProjectDetailPage() {
                 <CommitGraph commits={commits} />
               </div>
             )}
-            {commits && commits.length > 0 ? (
-              commits.map((commit, i) => (
+            <PaginatedList
+              items={commits ?? []}
+              pageSize={10}
+              emptyState={
+                <div className="py-12 text-center">
+                  <GitCommit className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                  <p className="text-body-md text-on-surface-variant">
+                    {repoName ? "No commits found" : "Connect a GitHub repo to see commits"}
+                  </p>
+                </div>
+              }
+              renderItem={(commit, i) => (
                 <div
                   key={commit.sha}
                   className={`flex items-start justify-between p-4 rounded-xl ${
@@ -240,9 +251,9 @@ export default function ProjectDetailPage() {
                   }`}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-body-md text-on-background truncate">{commit.message}</p>
+                    <p className="text-body-md text-on-background truncate selectable">{commit.message}</p>
                     <div className="mt-1 flex items-center gap-3 text-label-sm text-on-surface-variant">
-                      <span className="font-mono">{commit.sha.slice(0, 7)}</span>
+                      <span className="font-mono selectable">{commit.sha.slice(0, 7)}</span>
                       <span>{commit.author}</span>
                     </div>
                   </div>
@@ -250,21 +261,22 @@ export default function ProjectDetailPage() {
                     {new Date(commit.date).toLocaleDateString()}
                   </span>
                 </div>
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <GitCommit className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
-                <p className="text-body-md text-on-surface-variant">
-                  {repoName ? "No commits found" : "Connect a GitHub repo to see commits"}
-                </p>
-              </div>
-            )}
+              )}
+            />
           </TabsContent>
 
           {/* Branches tab */}
           <TabsContent value="branches" className="space-y-3">
-            {branches && branches.length > 0 ? (
-              branches.map((branch, i) => (
+            <PaginatedList
+              items={branches ?? []}
+              pageSize={10}
+              emptyState={
+                <div className="py-12 text-center">
+                  <GitBranch className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
+                  <p className="text-body-md text-on-surface-variant">No branches found</p>
+                </div>
+              }
+              renderItem={(branch, i) => (
                 <div
                   key={branch.name}
                   className={`flex items-center justify-between p-4 rounded-xl ${
@@ -273,7 +285,7 @@ export default function ProjectDetailPage() {
                 >
                   <div className="flex items-center gap-3">
                     <GitBranch className="h-4 w-4 text-primary" />
-                    <span className="text-body-md font-mono text-on-background">{branch.name}</span>
+                    <span className="text-body-md font-mono text-on-background selectable">{branch.name}</span>
                     {branch.isDefault && (
                       <Badge className="bg-success/20 text-success text-label-sm">default</Badge>
                     )}
@@ -281,17 +293,12 @@ export default function ProjectDetailPage() {
                       <Badge variant="secondary" className="text-label-sm">protected</Badge>
                     )}
                   </div>
-                  <span className="text-label-sm font-mono text-on-surface-variant">
+                  <span className="text-label-sm font-mono text-on-surface-variant selectable">
                     {branch.commitSha.slice(0, 7)}
                   </span>
                 </div>
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <GitBranch className="mx-auto h-8 w-8 text-on-surface-dim mb-3" />
-                <p className="text-body-md text-on-surface-variant">No branches found</p>
-              </div>
-            )}
+              )}
+            />
           </TabsContent>
 
           {/* Releases tab */}

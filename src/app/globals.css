@@ -3,25 +3,26 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light mode defaults ─────────────────────────────────────────────────── */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 0 0% 98%;
+    --foreground: 240 10% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 240 10% 4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 240 10% 4%;
     --primary: 239 84% 67%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 240 5% 94%;
+    --secondary-foreground: 240 10% 4%;
+    --muted: 240 5% 94%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 94%;
+    --accent-foreground: 240 10% 4%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
     --ring: 239 84% 67%;
     --radius: 0.5rem;
     --chart-1: 239 84% 67%;
@@ -29,14 +30,14 @@
     --chart-3: 36 100% 69%;
     --chart-4: 247 65% 75%;
     --chart-5: 0 84% 60%;
-    --sidebar: 240 5.9% 10%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-border: 240 6% 12%;
+    --sidebar: 240 5% 95%;
+    --sidebar-foreground: 240 10% 20%;
+    --sidebar-border: 240 6% 88%;
     --sidebar-accent: 239 84% 67%;
     --sidebar-accent-foreground: 0 0% 98%;
   }
 
-  /* Obsidian Monolith — Stitch Design System */
+  /* ── Obsidian Monolith — Stitch Design System (dark default) ─────────────── */
   .dark {
     --background: 240 6% 4%;
     --foreground: 0 0% 97%;
@@ -75,13 +76,13 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground select-none;
     font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Obsidian Monolith — Signature Animations */
+/* ── Obsidian Monolith — Signature Animations ─────────────────────────────── */
 @layer utilities {
   .pulse-emerald {
     animation: pulse-emerald 2s infinite;
@@ -107,18 +108,34 @@
   }
 
   .ghost-border {
-    border: 1px solid #1f1f23;
+    border: 1px solid hsl(var(--border));
+  }
+
+  .selectable {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  /* Theme transition — smooth color changes */
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 60ms ease !important;
   }
 }
 
-/* Custom Scrollbar — Obsidian style */
+/* ── Custom Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0b;
+  background: hsl(var(--background));
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f1f23;
+  background: hsl(var(--border));
   border-radius: 10px;
 }

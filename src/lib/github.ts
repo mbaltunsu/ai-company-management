@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import { logger } from "./logger";
 import type {
+  Agent,
   GitHubCommit,
   GitHubBranch,
   GitHubRelease,
@@ -211,6 +212,65 @@ export class GitHubService {
     };
   }
 
+  async getRepoAgents(repo: string): Promise<Agent[]> {
+    log.info({ repo }, "Fetching repo agents from .claude/agents");
+
+    let dirEntries: { name: string; type: string; path: string }[];
+
+    try {
+      const { data } = await this.octokit.repos.getContent({
+        owner: this.owner,
+        repo,
+        path: ".claude/agents",
+      });
+
+      if (!Array.isArray(data)) {
+        log.warn({ repo }, ".claude/agents is not a directory");
+        return [];
+      }
+
+      dirEntries = data as { name: string; type: string; path: string }[];
+    } catch (err: unknown) {
+      const status = (err as { status?: number }).status;
+      if (status === 404) {
+        log.info({ repo }, "No .claude/agents directory found");
+        return [];
+      }
+      throw err;
+    }
+
+    const mdFiles = dirEntries.filter(
+      (entry) => entry.type === "file" && entry.name.endsWith(".md")
+    );
+
+    const agents: Agent[] = [];
+
+    for (const file of mdFiles) {
+      try {
+        const { data: fileData } = await this.octokit.repos.getContent({
+          owner: this.owner,
+          repo,
+          path: file.path,
+        });
+
+        if (Array.isArray(fileData) || fileData.type !== "file") {
+          continue;
+        }
+
+        const content = Buffer.from(fileData.content, "base64").toString("utf-8");
+        const name = file.name.replace(/\.md$/, "");
+        const description = extractAgentDescription(content);
+
+        agents.push({ name, filename: file.name, description, content });
+      } catch (err) {
+        log.warn({ repo, file: file.name, err }, "Failed to fetch agent file content");
+      }
+    }
+
+    log.info({ repo, count: agents.length }, "Agents fetched");
+    return agents;
+  }
+
   async getRateLimit(): Promise<GitHubRateLimit> {
     const { data } = await this.octokit.rateLimit.get();
     return {
@@ -283,6 +343,19 @@ export class GitHubService {
       starCount: repo.stargazers_count ?? 0,
     }));
   }
+}
+
+// ── Private helpers ──────────────────────────────────────────────────────────
+
+function extractAgentDescription(content: string): string {
+  const lines = content.split("\n").filter((l) => l.trim().length > 0);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("#") && !trimmed.startsWith("---") && !trimmed.startsWith("```")) {
+      return trimmed.slice(0, 200);
+    }
+  }
+  return "";
 }
 
 /**

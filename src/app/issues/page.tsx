@@ -15,6 +15,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { useIssues } from "@/hooks/use-github";
 import { IssueRow } from "@/components/issues/issue-row";
 import { CreateIssueDialog } from "@/components/issues/create-issue-dialog";
+import { PaginatedList } from "@/components/ui/paginated-list";
 import type { Project } from "@/types";
 
 export default function IssuesPage() {
@@ -103,22 +104,25 @@ export default function IssuesPage() {
               <Skeleton key={i} className="h-[72px] rounded-xl bg-surface-container" />
             ))}
           </div>
-        ) : issues && issues.length > 0 ? (
-          <div className="space-y-2">
-            {issues.map((issue, i) => (
+        ) : issues ? (
+          <PaginatedList
+            items={issues}
+            pageSize={10}
+            emptyState={
+              <div className="flex flex-col items-center justify-center py-16">
+                <CircleDot className="h-8 w-8 text-on-surface-dim mb-3" />
+                <p className="text-body-md text-on-surface-variant">No open issues</p>
+              </div>
+            }
+            renderItem={(issue, i) => (
               <IssueRow
                 key={issue.number}
                 issue={issue}
                 variant={i % 2 === 0 ? "even" : "odd"}
               />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16">
-            <CircleDot className="h-8 w-8 text-on-surface-dim mb-3" />
-            <p className="text-body-md text-on-surface-variant">No open issues</p>
-          </div>
-        )}
+            )}
+          />
+        ) : null}
       </div>
 
       {selectedProject?.githubRepo && (

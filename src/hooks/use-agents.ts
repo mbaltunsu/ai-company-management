@@ -7,6 +7,7 @@ import type { Agent, ApiResult } from "@/types";
 export const agentKeys = {
   all: (projectPath: string) => ["agents", projectPath] as const,
   detail: (projectPath: string, name: string) => ["agents", projectPath, name] as const,
+  github: (repo: string) => ["agents", "github", repo] as const,
 };
 
 async function fetchAgents(projectPath: string): Promise<Agent[]> {
@@ -71,6 +72,24 @@ async function deleteAgent(data: { projectPath: string; name: string }): Promise
   if (json.error) throw new Error(json.error);
   if (!json.data) throw new Error("No data returned");
   return json.data;
+}
+
+async function fetchGitHubAgents(repo: string): Promise<Agent[]> {
+  const params = new URLSearchParams({ repo });
+  const res = await fetch(`/api/github/agents?${params}`);
+  if (!res.ok) throw new Error(`Failed to fetch GitHub agents: ${res.statusText}`);
+  const json: ApiResult<Agent[]> = await res.json();
+  if (json.error) throw new Error(json.error);
+  if (!json.data) throw new Error("No data returned");
+  return json.data;
+}
+
+export function useGitHubAgents(repo: string | null) {
+  return useQuery({
+    queryKey: repo ? agentKeys.github(repo) : ["agents", "github", null],
+    queryFn: () => fetchGitHubAgents(repo!),
+    enabled: Boolean(repo),
+  });
 }
 
 export function useAgents(projectPath: string | null) {

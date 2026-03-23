@@ -159,6 +159,7 @@ See [TEAM.md](TEAM.md) for the full agent roster.
 ### Installed Agents and Rules
 
 **Agents** (`.claude/agents/`):
+
 - api-designer.md — Use this agent when designing new APIs, creating API specifications, or refactoring existing API architecture for scalability and developer experience. Invoke when you need REST/GraphQL endpoint design, OpenAPI documentation, authentication patterns, or API versioning strategies.
 - code-reviewer.md — Use this agent when you need to conduct comprehensive code reviews focusing on code quality, security vulnerabilities, and best practices.
 - frontend-developer.md — Use when building complete frontend applications across React, Vue, and Angular frameworks requiring multi-framework expertise and full-stack integration.
@@ -169,6 +170,7 @@ See [TEAM.md](TEAM.md) for the full agent roster.
 - ui-designer.md — Use this agent when designing visual interfaces, creating design systems, building component libraries, or refining user-facing aesthetics requiring expert visual design, interaction patterns, and accessibility considerations.
 
 **Rules** (`.claude/rules/`):
+
 - architecture.md
 - git-rules.md
 - project-context.md
@@ -185,3 +187,9 @@ See [TEAM.md](TEAM.md) for the full agent roster.
 - Run `/team:init-project` to bootstrap rules for a new project
 - Run `/team:add-agent` to add a single agent by name or capability
 - Run `/team:init-team` to set up a full agent roster
+
+## DO NOTs
+
+- Do not make text selectable in apps unless stated otherwise
+- Do not assume, ask when you need clarification
+-
