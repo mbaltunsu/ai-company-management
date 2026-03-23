@@ -97,6 +97,7 @@ Parallel workflow rules:
 - Prefer clean history.
 - Squash merge when the branch contains noisy intermediate commits.
 - Preserve separate commits when they are already clean and meaningful.
+- Push to same branch in remote and then merge in remote to see history and branch structure clearly.
 
 ### Main and Stage Protection
 

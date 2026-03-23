@@ -10,6 +10,7 @@ const SETTINGS_KEYS = [
   "scanDirectories",
   "logLevel",
   "refreshInterval",
+  "claudeApiKey",
 ] as const;
 
 const DEFAULTS: AppSettings = {
@@ -44,6 +45,7 @@ async function readSettings(
     refreshInterval: map.refreshInterval
       ? Number(map.refreshInterval)
       : DEFAULTS.refreshInterval,
+    claudeApiKey: typeof map.claudeApiKey === "string" ? map.claudeApiKey : "",
   };
 }
 
@@ -117,6 +119,9 @@ export async function PATCH(
         key: "refreshInterval",
         value: String(parsed.data.refreshInterval),
       });
+    }
+    if (parsed.data.claudeApiKey !== undefined) {
+      rows.push({ key: "claudeApiKey", value: parsed.data.claudeApiKey });
     }
 
     if (rows.length > 0) {

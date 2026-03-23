@@ -6,12 +6,15 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   FolderKanban,
+  Network,
   Bot,
   CircleDot,
   Target,
   Settings,
   ChevronLeft,
   ChevronRight,
+  Wand2,
+  Columns3,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +24,10 @@ import { Separator } from "@/components/ui/separator";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/graph", label: "Network", icon: Network },
+  { href: "/board", label: "Board", icon: Columns3 },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/skills", label: "Skills", icon: Wand2 },
   { href: "/issues", label: "Issues", icon: CircleDot },
   { href: "/goals", label: "Goals", icon: Target },
 ];

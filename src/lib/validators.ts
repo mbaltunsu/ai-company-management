@@ -89,4 +89,59 @@ export const updateSettingsSchema = z.object({
   scanDirectories: z.array(z.string()).optional(),
   logLevel: z.enum(["debug", "info", "warn", "error"]).optional(),
   refreshInterval: z.number().int().min(10000).max(300000).optional(),
+  claudeApiKey: z.string().optional(),
+});
+
+// ============================================================
+// Task Validators
+// ============================================================
+
+export const createTaskSchema = z.object({
+  projectId: z.string().uuid().nullable().optional(),
+  title: z.string().min(1).max(500),
+  description: z.string().nullable().optional(),
+  status: z.enum(["backlog", "in_progress", "in_review", "done"]).optional(),
+  priority: z.enum(["urgent", "high", "normal", "low"]).optional(),
+  assignedAgents: z.array(z.string()).optional(),
+  suggestedPrompt: z.string().nullable().optional(),
+});
+
+export const updateTaskSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  description: z.string().nullable().optional(),
+  status: z.enum(["backlog", "in_progress", "in_review", "done"]).optional(),
+  priority: z.enum(["urgent", "high", "normal", "low"]).optional(),
+  assignedAgents: z.array(z.string()).optional(),
+  suggestedPrompt: z.string().nullable().optional(),
+  order: z.number().int().optional(),
+});
+
+// ============================================================
+// Skill Validators
+// ============================================================
+
+export const createSkillSchema = z.object({
+  projectId: z.string().uuid().nullable().optional(),
+  name: z.string().min(1).max(200),
+  description: z.string().nullable().optional(),
+  whenToUse: z.string().nullable().optional(),
+});
+
+export const updateSkillSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().nullable().optional(),
+  whenToUse: z.string().nullable().optional(),
+});
+
+// ============================================================
+// Claude Suggest Validators
+// ============================================================
+
+export const claudeSuggestSchema = z.object({
+  taskTitle: z.string().min(1),
+  taskDescription: z.string().optional(),
+  availableAgents: z.array(z.object({
+    name: z.string(),
+    description: z.string(),
+  })),
 });

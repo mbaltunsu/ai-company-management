@@ -3,20 +3,24 @@
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRateLimit } from "@/hooks/use-github";
 import { useGitHubAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useClaudeTest } from "@/hooks/use-claude";
 import { COLOR_SWATCHES, THEMES } from "@/lib/themes";
 import type { ThemeConfig } from "@/lib/themes";
 import {
   Github,
   Palette,
+  Sparkles,
   CheckCircle2,
   XCircle,
   Loader2,
-  RefreshCw,
+  Eye,
+  EyeOff,
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,13 +28,14 @@ import type { AppSettings } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Section = "github" | "appearance";
+type Section = "github" | "appearance" | "claude";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS: Array<{ id: Section; label: string; icon: React.ElementType }> = [
   { id: "github", label: "GitHub", icon: Github },
   { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "claude", label: "Claude Code", icon: Sparkles },
 ];
 
 const INTERVAL_OPTIONS: Array<{ value: number; label: string }> = [
@@ -379,6 +384,196 @@ function SwatchRow({
   );
 }
 
+// ─── Section: Claude Code ─────────────────────────────────────────────────────
+
+function ClaudeSection() {
+  const [apiKey, setApiKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [testEnabled, setTestEnabled] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  const { data: testResult, isLoading: testLoading, isFetching: testFetching } = useClaudeTest(testEnabled);
+
+  // Reset test trigger once result arrives
+  useEffect(() => {
+    if (testResult !== undefined && !testFetching) {
+      setTestEnabled(false);
+    }
+  }, [testResult, testFetching]);
+
+  // Load existing (masked) key on mount
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.data?.claudeApiKey) {
+          setApiKey(json.data.claudeApiKey as string);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveStatus("idle");
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claudeApiKey: apiKey }),
+      });
+      setSaveStatus(res.ok ? "saved" : "error");
+    } catch {
+      setSaveStatus("error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleTest() {
+    setTestEnabled(true);
+  }
+
+  const isConnected = testResult?.connected === true;
+  const testDone = testResult !== undefined;
+  const isTesting = testLoading || testFetching;
+
+  const inputClass =
+    "bg-surface-container-high border-[#1f1f23] text-on-background placeholder:text-on-surface-dim focus-visible:ring-primary focus-visible:border-primary font-mono";
+
+  return (
+    <div className="space-y-4">
+      {/* API Key card */}
+      <div className="rounded-xl bg-surface-container p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-body-md font-semibold text-on-background">API Key</p>
+            <p className="text-label-sm text-on-surface-variant mt-0.5">
+              Your Anthropic API key — stored securely in the database
+            </p>
+          </div>
+          {testDone && !isTesting && (
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  isConnected ? "bg-success" : "bg-red-400"
+                )}
+              />
+              <span
+                className={cn(
+                  "text-label-sm",
+                  isConnected ? "text-success" : "text-red-400"
+                )}
+              >
+                {isConnected ? "Connected" : "Not configured"}
+              </span>
+            </div>
+          )}
+          {!testDone && (
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-on-surface-dim" />
+              <span className="text-label-sm text-on-surface-dim">Not tested</span>
+            </div>
+          )}
+        </div>
+
+        {/* Key input */}
+        <div className="relative">
+          <Input
+            type={showKey ? "text" : "password"}
+            value={apiKey}
+            onChange={(e) => {
+              setApiKey(e.target.value);
+              setSaveStatus("idle");
+            }}
+            placeholder="sk-ant-..."
+            className={cn(inputClass, "pr-10")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-dim hover:text-on-background transition-colors"
+            aria-label={showKey ? "Hide API key" : "Show API key"}
+          >
+            {showKey ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button
+            onClick={handleSave}
+            disabled={saving || !apiKey.trim()}
+            className="bg-primary text-white hover:bg-primary/90 gap-2"
+          >
+            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {saving ? "Saving…" : "Save"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleTest}
+            disabled={isTesting || !apiKey.trim()}
+            className="border border-[#1f1f23] text-on-surface-variant hover:text-on-background gap-2"
+          >
+            {isTesting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isTesting ? "Testing…" : "Test Connection"}
+          </Button>
+          {saveStatus === "saved" && (
+            <span className="flex items-center gap-1.5 text-label-sm text-success">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Saved
+            </span>
+          )}
+          {saveStatus === "error" && (
+            <span className="flex items-center gap-1.5 text-label-sm text-red-400">
+              <XCircle className="h-3.5 w-3.5" />
+              Failed to save
+            </span>
+          )}
+          {testDone && !isTesting && (
+            <span
+              className={cn(
+                "flex items-center gap-1.5 text-label-sm",
+                isConnected ? "text-success" : "text-red-400"
+              )}
+            >
+              {isConnected ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <XCircle className="h-3.5 w-3.5" />
+              )}
+              {isConnected ? "Connection successful" : "Connection failed"}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Info card */}
+      <div className="rounded-xl bg-surface-container p-5">
+        <p className="text-body-md font-semibold text-on-background">About Claude Code Integration</p>
+        <ul className="mt-3 space-y-2">
+          {[
+            "Generate agent suggestions for tasks automatically",
+            "Create targeted prompts for your AI agent team",
+            "API key is stored in Supabase and never exposed to the browser",
+          ].map((item) => (
+            <li key={item} className="flex items-start gap-2 text-body-md text-on-surface-variant">
+              <Sparkles className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 // ─── Section: Appearance ──────────────────────────────────────────────────────
 
 function AppearanceSection() {
@@ -566,7 +761,7 @@ export default function SettingsPage() {
               </h2>
             </div>
 
-            {loading && activeSection !== "appearance" ? (
+            {loading && activeSection !== "appearance" && activeSection !== "claude" ? (
               <div className="space-y-4">
                 <Skeleton className="h-[180px] rounded-xl" />
                 <Skeleton className="h-[100px] rounded-xl" />
@@ -577,6 +772,7 @@ export default function SettingsPage() {
                   <GitHubSection settings={settings} onChange={patchSettings} />
                 )}
                 {activeSection === "appearance" && <AppearanceSection />}
+                {activeSection === "claude" && <ClaudeSection />}
               </>
             )}
 
