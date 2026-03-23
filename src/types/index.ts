@@ -113,6 +113,19 @@ export interface RepoInfo {
   url: string;
 }
 
+export interface GitHubRepository {
+  id: number;
+  name: string;
+  fullName: string;
+  description: string | null;
+  language: string | null;
+  isPrivate: boolean;
+  defaultBranch: string;
+  updatedAt: string;
+  url: string;
+  starCount: number;
+}
+
 // ============================================================
 // Goal Types
 // ============================================================
