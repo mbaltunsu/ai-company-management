@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import { decrypt, isEncrypted } from "@/lib/encryption";
 
 const log = logger.child({ service: "ClaudeService" });
 
@@ -11,7 +12,18 @@ async function getApiKey(): Promise<string | null> {
     .select("value")
     .eq("key", "claudeApiKey")
     .single();
-  return data?.value ? JSON.parse(JSON.stringify(data.value)) : null;
+
+  const raw = data?.value ? JSON.parse(JSON.stringify(data.value)) : null;
+  if (!raw) return null;
+
+  // Decrypt if stored encrypted, otherwise return as-is (legacy)
+  try {
+    if (isEncrypted(raw)) return decrypt(raw);
+  } catch (err) {
+    log.error({ err }, "Failed to decrypt Claude API key");
+    return null;
+  }
+  return raw;
 }
 
 export async function generateTaskSuggestion(

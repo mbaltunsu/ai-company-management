@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createRequestLogger } from "@/lib/logger";
 import { updateSettingsSchema } from "@/lib/validators";
+import { encrypt, decrypt, maskApiKey, isEncrypted } from "@/lib/encryption";
 import type { ApiResult, AppSettings } from "@/types";
+
+const SENSITIVE_KEYS = ["claudeApiKey", "githubToken"] as const;
 
 const SETTINGS_KEYS = [
   "githubToken",
@@ -49,6 +52,26 @@ async function readSettings(
   };
 }
 
+/** Return settings with sensitive values masked for client display */
+function maskSettings(settings: AppSettings): AppSettings {
+  return {
+    ...settings,
+    claudeApiKey: settings.claudeApiKey ? maskApiKey(settings.claudeApiKey) : "",
+    githubToken: settings.githubToken ? maskApiKey(settings.githubToken) : "",
+  };
+}
+
+/** Decrypt a raw DB value if it's encrypted, return as-is if not */
+function decryptIfNeeded(value: string): string {
+  if (!value) return value;
+  try {
+    if (isEncrypted(value)) return decrypt(value);
+  } catch {
+    // If decryption fails, return as-is (legacy unencrypted value)
+  }
+  return value;
+}
+
 // GET /api/settings
 export async function GET(): Promise<NextResponse<ApiResult<AppSettings>>> {
   const log = createRequestLogger("GET /api/settings");
@@ -56,8 +79,11 @@ export async function GET(): Promise<NextResponse<ApiResult<AppSettings>>> {
   try {
     const supabase = await createClient();
     const settings = await readSettings(supabase);
+    // Decrypt sensitive values for internal use, then mask for client
+    settings.claudeApiKey = decryptIfNeeded(settings.claudeApiKey ?? "");
+    settings.githubToken = decryptIfNeeded(settings.githubToken);
     log.info("Settings fetched");
-    return NextResponse.json({ data: settings, error: null });
+    return NextResponse.json({ data: maskSettings(settings), error: null });
   } catch (err) {
     log.error({ err }, "Failed to fetch settings");
     return NextResponse.json(
@@ -121,7 +147,11 @@ export async function PATCH(
       });
     }
     if (parsed.data.claudeApiKey !== undefined) {
-      rows.push({ key: "claudeApiKey", value: parsed.data.claudeApiKey });
+      // Encrypt API keys before storing
+      const encryptedKey = parsed.data.claudeApiKey
+        ? encrypt(parsed.data.claudeApiKey)
+        : "";
+      rows.push({ key: "claudeApiKey", value: encryptedKey });
     }
 
     if (rows.length > 0) {
