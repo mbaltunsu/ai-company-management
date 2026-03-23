@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { createGitHubServiceFromSession } from "@/lib/github";
 import { createRequestLogger } from "@/lib/logger";
-import { auth } from "@/lib/auth";
 
-const log = createRequestLogger("GET /api/github/rate-limit");
+const log = createRequestLogger("GET /api/github/user");
 
 export async function GET() {
   try {
@@ -23,14 +23,14 @@ export async function GET() {
       );
     }
 
-    const rateLimit = await github.getRateLimit();
-    log.info({ remaining: rateLimit.remaining }, "Rate limit checked");
+    const user = await github.getAuthenticatedUser();
+    log.info({ login: user.login }, "GitHub user fetched");
 
-    return NextResponse.json({ data: rateLimit, error: null });
+    return NextResponse.json({ data: user, error: null });
   } catch (err) {
-    log.error({ err }, "Failed to fetch rate limit");
+    log.error({ err }, "Failed to fetch GitHub user");
     return NextResponse.json(
-      { data: null, error: "Failed to fetch rate limit" },
+      { data: null, error: "Failed to fetch GitHub user" },
       { status: 500 }
     );
   }

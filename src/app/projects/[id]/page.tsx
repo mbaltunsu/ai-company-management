@@ -1,31 +1,110 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useProject } from "@/hooks/use-projects";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useProject, useDeleteProject } from "@/hooks/use-projects";
 import { useCommits, useBranches, useReleases } from "@/hooks/use-github";
+import { toast } from "sonner";
 import {
   GitBranch,
   GitCommit,
   Tag,
   Target,
-  FileText,
   Bot,
+  Trash2,
 } from "lucide-react";
 import { CommitGraph } from "@/components/charts/commit-graph";
 import { ReleaseTimeline } from "@/components/charts/release-timeline";
 
+function DeleteConfirmDialog({
+  projectName,
+  open,
+  onOpenChange,
+  onConfirm,
+  isPending,
+}: {
+  projectName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-surface-container ghost-border sm:max-w-sm text-on-background">
+        <DialogHeader>
+          <DialogTitle className="text-headline-sm text-on-background">
+            Delete Project
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-body-md text-on-surface-variant mt-2">
+          Are you sure you want to remove{" "}
+          <span className="font-semibold text-on-background">{projectName}</span> from the
+          dashboard? This will not delete any files on disk.
+        </p>
+        <DialogFooter className="pt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="text-on-surface-variant"
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isPending ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { data: project, isLoading } = useProject(id);
+  const deleteMutation = useDeleteProject();
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const repoName = project?.githubRepo?.split("/")[1] || null;
   const { data: commits } = useCommits(repoName);
   const { data: branches } = useBranches(repoName);
   const { data: releases } = useReleases(repoName);
+
+  function handleDelete() {
+    deleteMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast.success("Project removed from dashboard");
+          router.push("/projects");
+        },
+        onError: (err: Error) => {
+          toast.error(err.message);
+          setDeleteOpen(false);
+        },
+      }
+    );
+  }
 
   if (isLoading) {
     return (
@@ -73,6 +152,17 @@ export default function ProjectDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Delete button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-on-surface-variant hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="text-label-sm">Delete</span>
+          </Button>
         </div>
 
         {/* Stat cards row */}
@@ -235,6 +325,14 @@ export default function ProjectDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <DeleteConfirmDialog
+        projectName={project.name}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDelete}
+        isPending={deleteMutation.isPending}
+      />
     </>
   );
 }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRateLimit } from "@/hooks/use-github";
+import { useGitHubAuth } from "@/hooks/use-auth";
 import {
   Github,
   Database,
@@ -67,7 +68,7 @@ function maskSecret(value: string, visibleChars = 4): string {
 const inputClass =
   "bg-surface-container-high border-[#1f1f23] text-on-background placeholder:text-on-surface-dim focus-visible:ring-primary focus-visible:border-primary";
 
-// ─── Status indicator ─────────────────────────────────────────────────────────
+// ─── Status indicator (used by DatabaseSection) ───────────────────────────────
 
 function StatusDot({ status }: { status: ConnectionStatus }) {
   if (status.state === "idle") return null;
@@ -89,28 +90,8 @@ function GitHubSection({
   settings: AppSettings;
   onChange: (patch: Partial<AppSettings>) => void;
 }) {
-  const [tokenVisible, setTokenVisible] = useState(false);
-  const [tokenInput, setTokenInput] = useState(settings.githubToken);
-  const [githubStatus, setGithubStatus] = useState<ConnectionStatus>({
-    state: "idle",
-    message: null,
-  });
-  const { data: rateLimit, refetch: refetchRateLimit } = useRateLimit();
-
-  async function testConnection() {
-    setGithubStatus({ state: "testing", message: null });
-    try {
-      const res = await fetch("/api/github/rate-limit");
-      if (res.ok) {
-        await refetchRateLimit();
-        setGithubStatus({ state: "ok", message: "Connected successfully" });
-      } else {
-        setGithubStatus({ state: "error", message: "Authentication failed" });
-      }
-    } catch {
-      setGithubStatus({ state: "error", message: "Connection failed" });
-    }
-  }
+  const { isConnected, isLoading, user, signIn, signOut } = useGitHubAuth();
+  const { data: rateLimit } = useRateLimit();
 
   const ratePct = rateLimit
     ? Math.round((rateLimit.remaining / rateLimit.limit) * 100)
@@ -131,74 +112,73 @@ function GitHubSection({
           <div>
             <p className="text-body-md font-semibold text-on-background">Connection</p>
             <p className="text-label-sm text-on-surface-variant mt-0.5">
-              Personal access token for GitHub API
+              GitHub OAuth — sign in to connect your account
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <StatusDot status={githubStatus} />
-            {githubStatus.message && (
+          {!isLoading && (
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  isConnected ? "bg-success" : "bg-on-surface-dim"
+                )}
+              />
               <span
                 className={cn(
                   "text-label-sm",
-                  githubStatus.state === "ok" ? "text-success" : "text-red-400"
+                  isConnected ? "text-success" : "text-on-surface-dim"
                 )}
               >
-                {githubStatus.message}
+                {isConnected ? "Connected" : "Not connected"}
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* Token display */}
-        <div className="space-y-1.5">
-          <label className="text-label-sm text-on-surface-variant">
-            Personal Access Token
-          </label>
-          <div className="flex gap-2">
-            <Input
-              type={tokenVisible ? "text" : "password"}
-              value={tokenInput}
-              onChange={(e) => {
-                setTokenInput(e.target.value);
-                onChange({ githubToken: e.target.value });
-              }}
-              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              className={cn(inputClass, "font-mono flex-1")}
-            />
+        {isLoading ? (
+          <Skeleton className="h-14 rounded-lg" />
+        ) : isConnected && user ? (
+          /* Connected state */
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-surface-container-high border border-[#1f1f23] px-4 py-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={user.avatar}
+                alt={user.login}
+                className="h-9 w-9 rounded-full border border-[#1f1f23] shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-body-md font-semibold text-on-background truncate">
+                  {user.name || user.login}
+                </p>
+                <p className="text-label-sm font-mono text-on-surface-variant truncate">
+                  @{user.login}
+                </p>
+              </div>
+            </div>
             <Button
               variant="ghost"
               size="sm"
-              className="shrink-0 text-on-surface-variant hover:text-on-background border border-[#1f1f23]"
-              onClick={() => setTokenVisible((v) => !v)}
+              onClick={signOut}
+              className="shrink-0 border border-[#1f1f23] text-on-surface-variant hover:text-red-400 hover:border-red-400/40"
             >
-              {tokenVisible ? "Hide" : "Show"}
+              Disconnect
             </Button>
           </div>
-          {settings.githubToken && !tokenInput && (
-            <p className="text-label-sm font-mono text-on-surface-dim">
-              Current: {maskSecret(settings.githubToken)}
-            </p>
-          )}
-        </div>
+        ) : (
+          /* Disconnected state */
+          <Button
+            onClick={signIn}
+            className="gap-2 bg-primary text-white hover:bg-primary/90"
+          >
+            <Github className="h-4 w-4" />
+            Connect GitHub
+          </Button>
+        )}
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={testConnection}
-          disabled={githubStatus.state === "testing"}
-          className="border border-[#1f1f23] text-on-surface-variant hover:text-on-background gap-2"
-        >
-          {githubStatus.state === "testing" ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="h-3.5 w-3.5" />
-          )}
-          Test Connection
-        </Button>
-
-        {/* Rate limit */}
-        {rateLimit && (
-          <div className="space-y-1.5 pt-2">
+        {/* Rate limit — shown only when connected */}
+        {isConnected && rateLimit && (
+          <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between">
               <span className="text-label-sm text-on-surface-variant">API Rate Limit</span>
               <span className="text-label-sm font-mono text-on-surface-dim">
@@ -214,25 +194,6 @@ function GitHubSection({
             </p>
           </div>
         )}
-      </div>
-
-      {/* Account card */}
-      <div className="rounded-xl bg-surface-container p-5 space-y-3">
-        <div>
-          <p className="text-body-md font-semibold text-on-background">Account</p>
-          <p className="text-label-sm text-on-surface-variant mt-0.5">
-            GitHub username or organization name
-          </p>
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-label-sm text-on-surface-variant">Owner</label>
-          <Input
-            value={settings.githubOwner}
-            onChange={(e) => onChange({ githubOwner: e.target.value })}
-            placeholder="your-username"
-            className={cn(inputClass, "font-mono")}
-          />
-        </div>
       </div>
 
       {/* Sync card */}
