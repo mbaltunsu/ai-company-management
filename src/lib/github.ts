@@ -6,6 +6,7 @@ import type {
   GitHubRelease,
   GitHubIssue,
   GitHubRateLimit,
+  GitHubRepository,
   RepoInfo,
 } from "@/types";
 
@@ -233,6 +234,54 @@ export class GitHubService {
       name: data.name ?? data.login,
       publicRepos: data.public_repos,
     };
+  }
+
+  async listUserRepositories(
+    options?: { page?: number; perPage?: number; sort?: "updated" | "created" | "pushed" | "full_name" }
+  ): Promise<GitHubRepository[]> {
+    log.info({ ...options }, "Listing user repositories");
+    const { data } = await this.octokit.repos.listForAuthenticatedUser({
+      sort: options?.sort || "updated",
+      direction: "desc",
+      per_page: options?.perPage || 30,
+      page: options?.page || 1,
+    });
+
+    return data.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      fullName: repo.full_name,
+      description: repo.description ?? null,
+      language: repo.language ?? null,
+      isPrivate: repo.private,
+      defaultBranch: repo.default_branch,
+      updatedAt: repo.updated_at ?? "",
+      url: repo.html_url,
+      starCount: repo.stargazers_count ?? 0,
+    }));
+  }
+
+  async searchUserRepositories(query: string): Promise<GitHubRepository[]> {
+    log.info({ query }, "Searching user repositories");
+    const { data } = await this.octokit.search.repos({
+      q: `${query} user:${this.owner}`,
+      sort: "updated",
+      order: "desc",
+      per_page: 30,
+    });
+
+    return data.items.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      fullName: repo.full_name,
+      description: repo.description ?? null,
+      language: repo.language ?? null,
+      isPrivate: repo.private,
+      defaultBranch: repo.default_branch,
+      updatedAt: repo.updated_at ?? "",
+      url: repo.html_url,
+      starCount: repo.stargazers_count ?? 0,
+    }));
   }
 }
 

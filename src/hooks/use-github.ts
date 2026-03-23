@@ -1,12 +1,14 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import type {
   GitHubCommit,
   GitHubBranch,
   GitHubRelease,
   GitHubIssue,
   GitHubRateLimit,
+  GitHubRepository,
   ApiResult,
 } from "@/types";
 
@@ -90,5 +92,23 @@ export function useRateLimit() {
     queryKey: ["github", "rate-limit"],
     queryFn: () => fetchApi<GitHubRateLimit>("/api/github/rate-limit"),
     refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+export function useGitHubRepos(search: string, page = 1) {
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  return useQuery({
+    queryKey: ["github", "repos", debouncedSearch, page],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), perPage: "30" });
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+      return fetchApi<GitHubRepository[]>(`/api/github/repos?${params}`);
+    },
   });
 }

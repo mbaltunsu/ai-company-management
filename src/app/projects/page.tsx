@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FolderKanban, Search, Plus, ScanLine } from "lucide-react";
 import { useProjects, useScanProjects } from "@/hooks/use-projects";
 import { ProjectCard } from "@/components/dashboard/project-card";
-import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
+import { ImportProjectDialog } from "@/components/projects/import-project-dialog";
 import {
   Dialog,
   DialogContent,
@@ -106,7 +106,6 @@ function ScanDialog({
 
 export default function ProjectsPage() {
   const { data: projects, isLoading } = useProjects();
-  const [createOpen, setCreateOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -139,14 +138,7 @@ export default function ProjectsPage() {
               <ScanLine className="h-4 w-4" />
               <span className="text-body-md">Scan Directory</span>
             </Button>
-            <Button
-              size="sm"
-              className="gap-2"
-              onClick={() => setCreateOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              <span className="text-body-md">Add Project</span>
-            </Button>
+            <ImportProjectDialog />
           </div>
         </div>
 
@@ -178,7 +170,6 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ScanDialog open={scanOpen} onOpenChange={setScanOpen} />
     </>
   );
