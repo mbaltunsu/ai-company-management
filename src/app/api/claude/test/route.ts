@@ -5,20 +5,21 @@ import type { ApiResult } from "@/types";
 
 // GET /api/claude/test
 export async function GET(): Promise<
-  NextResponse<ApiResult<{ connected: boolean }>>
+  NextResponse<ApiResult<{ connected: boolean; error?: string }>>
 > {
   const log = createRequestLogger("GET /api/claude/test");
 
   log.info("Claude connection test requested");
 
   try {
-    const connected = await testConnection();
-    log.info({ connected }, "Claude connection test completed");
-    return NextResponse.json({ data: { connected }, error: null });
+    const result = await testConnection();
+    log.info({ connected: result.connected, error: result.error }, "Claude connection test completed");
+    return NextResponse.json({ data: result, error: null });
   } catch (err) {
     log.error({ err }, "Unexpected error during connection test");
-    return NextResponse.json(
-      { data: { connected: false }, error: null }
-    );
+    return NextResponse.json({
+      data: { connected: false, error: "Unexpected server error" },
+      error: null,
+    });
   }
 }

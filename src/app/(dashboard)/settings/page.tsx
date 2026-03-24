@@ -478,8 +478,13 @@ function ClaudeSection() {
                   isConnected ? "text-success" : "text-red-400"
                 )}
               >
-                {isConnected ? "Connected" : "Not configured"}
+                {isConnected ? "Connected" : "Failed"}
               </span>
+              {!isConnected && testResult?.error && (
+                <span className="text-label-sm text-red-400 max-w-[300px] truncate" title={testResult.error}>
+                  {testResult.error}
+                </span>
+              )}
             </div>
           )}
           {!testDone && (
@@ -566,7 +571,7 @@ function ClaudeSection() {
               ) : (
                 <XCircle className="h-3.5 w-3.5" />
               )}
-              {isConnected ? "Connection successful" : "Connection failed"}
+              {isConnected ? "Connection successful" : testResult?.error || "Connection failed"}
             </span>
           )}
         </div>

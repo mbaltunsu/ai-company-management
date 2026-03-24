@@ -98,21 +98,28 @@ Respond in JSON format only:
   return result;
 }
 
-export async function testConnection(): Promise<boolean> {
+export async function testConnection(): Promise<{ connected: boolean; error?: string }> {
   const apiKey = await getApiKey();
-  if (!apiKey) return false;
+  if (!apiKey) return { connected: false, error: "No API key configured" };
+
+  // Trim whitespace/newlines that may have been copied
+  const cleanKey = apiKey.trim();
 
   try {
-    const client = new Anthropic({ apiKey });
+    const client = new Anthropic({ apiKey: cleanKey });
     await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 10,
       messages: [{ role: "user", content: "ping" }],
     });
     log.info("Claude connection test succeeded");
-    return true;
-  } catch (err) {
+    return { connected: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    // Extract Anthropic API error message if available
+    const apiError = (err as { error?: { error?: { message?: string } } })?.error?.error?.message;
+    const errorMsg = apiError || message;
     log.warn({ err }, "Claude connection test failed");
-    return false;
+    return { connected: false, error: errorMsg };
   }
 }

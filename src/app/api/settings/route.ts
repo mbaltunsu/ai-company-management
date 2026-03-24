@@ -147,10 +147,9 @@ export async function PATCH(
       });
     }
     if (parsed.data.claudeApiKey !== undefined) {
-      // Encrypt API keys before storing
-      const encryptedKey = parsed.data.claudeApiKey
-        ? encrypt(parsed.data.claudeApiKey)
-        : "";
+      // Trim whitespace and encrypt API keys before storing
+      const cleanKey = parsed.data.claudeApiKey?.trim() || "";
+      const encryptedKey = cleanKey ? encrypt(cleanKey) : "";
       rows.push({ key: "claudeApiKey", value: encryptedKey });
     }
 
