@@ -492,8 +492,8 @@ function ClaudeSection() {
 
         {/* Existing key indicator */}
         {hasExistingKey && !apiKey && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-high text-label-sm font-mono text-on-surface-variant">
-            <span>Current key: {maskedKey}</span>
+          <div className="px-3 py-2 rounded-lg bg-surface-container-high text-label-sm font-mono text-on-surface-variant overflow-hidden text-ellipsis whitespace-nowrap">
+            Current key: {maskedKey}
           </div>
         )}
 
