@@ -124,7 +124,7 @@ export default function TreePage() {
             </div>
           ) : (
             <div className="py-2">
-              {rootProjects.map((project) => {
+              {rootProjects.map((project, index) => {
                 const children = treeMap.get(project.id) ?? [];
                 return (
                   <ProjectTreeNode
@@ -133,19 +133,20 @@ export default function TreePage() {
                     children={children}
                     allProjects={projects ?? []}
                     depth={0}
+                    isLast={index === rootProjects.length - 1}
                     onSetParent={handleSetParent}
                   />
                 );
               })}
               {/* Orphaned nodes: parentId set to a non-existent project */}
-              {(projects ?? [])
-                .filter(
+              {(() => {
+                const orphans = (projects ?? []).filter(
                   (p) =>
                     p.parentId !== null &&
                     !(projects ?? []).some((other) => other.id === p.parentId) &&
                     !(treeMap.get(null) ?? []).some((r) => r.id === p.id)
-                )
-                .map((project) => {
+                );
+                return orphans.map((project, index) => {
                   const children = treeMap.get(project.id) ?? [];
                   return (
                     <ProjectTreeNode
@@ -154,10 +155,12 @@ export default function TreePage() {
                       children={children}
                       allProjects={projects ?? []}
                       depth={0}
+                      isLast={index === orphans.length - 1}
                       onSetParent={handleSetParent}
                     />
                   );
-                })}
+                });
+              })()}
             </div>
           )}
         </div>

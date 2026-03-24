@@ -14,11 +14,12 @@ import {
 import { KanbanBoard } from "@/components/board/kanban-board";
 import { CreateTaskDialog } from "@/components/board/create-task-dialog";
 import { TaskDetailSheet } from "@/components/board/task-detail-sheet";
+import { toast } from "sonner";
 import { useProjects } from "@/hooks/use-projects";
 import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import { useClaudeSuggest } from "@/hooks/use-claude";
 import { useGitHubAgents } from "@/hooks/use-agents";
-import type { Task, Agent, Project } from "@/types";
+import type { Task, Agent, Project, ClaudeSuggestion } from "@/types";
 
 // ─── Skeleton columns ──────────────────────────────────────────────────────────
 
@@ -75,21 +76,30 @@ export default function BoardPage() {
   }
 
   /**
-   * Runs Claude agent suggestion for a task, then persists the result.
+   * Runs Claude agent suggestion for a task and returns the suggestion.
    * Called from both CreateTaskDialog (new task) and TaskDetailSheet (Ask Claude button).
    */
   const runClaudeSuggestion = useCallback(
-    async (task: Task, availableAgents: Agent[]) => {
-      if (availableAgents.length === 0) return;
+    async (task: Task, availableAgents: Agent[]): Promise<ClaudeSuggestion> => {
+      if (availableAgents.length === 0) throw new Error("No agents available for this project");
+      const suggestion = await claudeSuggest.mutateAsync({
+        taskTitle: task.title,
+        taskDescription: task.description ?? undefined,
+        availableAgents: availableAgents.map((a) => ({
+          name: a.name,
+          description: a.description,
+        })),
+      });
+      return suggestion;
+    },
+    [claudeSuggest]
+  );
+
+  /** Handler passed to CreateTaskDialog — fires BEFORE dialog closes. */
+  const handleTaskCreated = useCallback(
+    async (task: Task, agents: Agent[]) => {
       try {
-        const suggestion = await claudeSuggest.mutateAsync({
-          taskTitle: task.title,
-          taskDescription: task.description ?? undefined,
-          availableAgents: availableAgents.map((a) => ({
-            name: a.name,
-            description: a.description,
-          })),
-        });
+        const suggestion = await runClaudeSuggestion(task, agents);
         updateTask.mutate({
           id: task.id,
           assignedAgents: suggestion.suggestedAgents,
@@ -99,23 +109,26 @@ export default function BoardPage() {
         // No API key or rate-limited — fail silently
       }
     },
-    [claudeSuggest, updateTask]
+    [runClaudeSuggestion, updateTask]
   );
 
-  /** Handler passed to CreateTaskDialog — fires BEFORE dialog closes. */
-  const handleTaskCreated = useCallback(
-    (task: Task, agents: Agent[]) => {
-      void runClaudeSuggestion(task, agents);
-    },
-    [runClaudeSuggestion]
-  );
-
-  /** Handler passed to TaskDetailSheet's "Ask Claude" button. */
+  /** Handler passed to TaskDetailSheet's "Ask Claude" button — returns the suggestion. */
   const handleAskClaude = useCallback(
-    (task: Task) => {
-      void runClaudeSuggestion(task, detailTaskAgents ?? []);
+    async (task: Task): Promise<ClaudeSuggestion> => {
+      return runClaudeSuggestion(task, detailTaskAgents ?? []);
     },
     [runClaudeSuggestion, detailTaskAgents]
+  );
+
+  /** Applies the confirmed suggestion from TaskDetailSheet. */
+  const handleApplySuggestion = useCallback(
+    (taskId: string, agents: string[], prompt: string) => {
+      updateTask.mutate(
+        { id: taskId, assignedAgents: agents, suggestedPrompt: prompt },
+        { onSuccess: () => toast.success("Agents assigned to task") }
+      );
+    },
+    [updateTask]
   );
 
   const isLoading = loadingTasks;
@@ -237,6 +250,7 @@ export default function BoardPage() {
         onDelete={handleDeleteTask}
         projectGithubRepo={detailTaskProject?.githubRepo}
         onAskClaude={handleAskClaude}
+        onApplySuggestion={handleApplySuggestion}
       />
     </>
   );
