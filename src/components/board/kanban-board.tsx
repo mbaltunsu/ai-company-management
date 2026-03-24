@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -15,7 +15,7 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
 import { KanbanCard } from "./kanban-card";
-import type { Task } from "@/types";
+import type { Task, Project } from "@/types";
 import type { ColumnStatus } from "./kanban-column";
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
@@ -24,20 +24,49 @@ interface KanbanBoardProps {
   tasks: Task[];
   onUpdateTask: (payload: { id: string; status?: Task["status"]; order?: number }) => void;
   onOpenDetail: (task: Task) => void;
+  projects?: Project[];
 }
 
 const COLUMNS: ColumnStatus[] = ["backlog", "in_progress", "in_review", "done"];
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export function KanbanBoard({ tasks, onUpdateTask, onOpenDetail }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onUpdateTask, onOpenDetail, projects }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  // Local optimistic column grouping while dragging
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
-  // Sync when external tasks prop changes (after server round-trip)
-  if (localTasks !== tasks && !activeTask) {
-    setLocalTasks(tasks);
+  // Track the last serialized tasks we synced from props to avoid loops
+  const lastSyncedRef = useRef<string>(JSON.stringify(tasks));
+
+  // Sync incoming tasks prop only when not dragging and data actually changed
+  useEffect(() => {
+    if (activeTask) return;
+    const serialized = JSON.stringify(tasks);
+    if (serialized !== lastSyncedRef.current) {
+      lastSyncedRef.current = serialized;
+      setLocalTasks(tasks);
+    }
+  }, [tasks, activeTask]);
+
+  const projectNameMap = useMemo<Record<string, string>>(() => {
+    if (!projects) return {};
+    return projects.reduce<Record<string, string>>((acc, p) => {
+      acc[p.id] = p.name;
+      return acc;
+    }, {});
+  }, [projects]);
+
+  function toggleExpand(id: string) {
+    setExpandedTasks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   const sensors = useSensors(
@@ -151,6 +180,9 @@ export function KanbanBoard({ tasks, onUpdateTask, onOpenDetail }: KanbanBoardPr
             status={status}
             tasks={tasksInColumn(status)}
             onOpenDetail={onOpenDetail}
+            projectNameMap={projectNameMap}
+            expandedTasks={expandedTasks}
+            onToggleExpand={toggleExpand}
           />
         ))}
       </div>

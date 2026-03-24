@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,13 +23,15 @@ import {
   Eye,
   EyeOff,
   Check,
+  LogOut,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppSettings } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Section = "github" | "appearance" | "claude";
+type Section = "github" | "appearance" | "claude" | "account";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -36,6 +39,7 @@ const NAV_ITEMS: Array<{ id: Section; label: string; icon: React.ElementType }> 
   { id: "github", label: "GitHub", icon: Github },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "claude", label: "Claude Code", icon: Sparkles },
+  { id: "account", label: "Account", icon: LogOut },
 ];
 
 const INTERVAL_OPTIONS: Array<{ value: number; label: string }> = [
@@ -690,6 +694,115 @@ function AppearanceSection() {
   );
 }
 
+// ─── Section: Account ─────────────────────────────────────────────────────────
+
+function AccountSection() {
+  const { data: session, status } = useSession();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const isLoading = status === "loading";
+
+  const isGitHubUser =
+    status === "authenticated" && !!session?.accessToken;
+
+  const displayName = isGitHubUser
+    ? (session?.githubUser?.name || session?.githubUser?.login || "GitHub User")
+    : (session?.user?.name || "Demo User");
+
+  const email = session?.user?.email ?? null;
+  const avatar = isGitHubUser ? session?.githubUser?.avatar : null;
+  const login = isGitHubUser ? session?.githubUser?.login : null;
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    await signOut({ callbackUrl: "/login" });
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* User info card */}
+      <div className="rounded-xl bg-surface-container p-5 space-y-4">
+        <div>
+          <p className="text-body-md font-semibold text-on-background">Signed-in User</p>
+          <p className="text-label-sm text-on-surface-variant mt-0.5">
+            Your current session details
+          </p>
+        </div>
+
+        {isLoading ? (
+          <Skeleton className="h-16 rounded-lg" />
+        ) : (
+          <div className="flex items-center gap-3 rounded-lg bg-surface-container-high border border-[#1f1f23] px-4 py-3">
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatar}
+                alt={displayName}
+                className="h-8 w-8 rounded-full border border-[#1f1f23] shrink-0"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-surface-container-high border border-[#1f1f23] flex items-center justify-center shrink-0">
+                <User className="h-4 w-4 text-on-surface-variant" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-body-md font-semibold text-on-background truncate">
+                {displayName}
+              </p>
+              {login && (
+                <p className="text-label-sm font-mono text-on-surface-variant truncate">
+                  @{login}
+                </p>
+              )}
+              {email && !login && (
+                <p className="text-label-sm font-mono text-on-surface-variant truncate">
+                  {email}
+                </p>
+              )}
+            </div>
+            <span className="text-label-sm text-on-surface-variant shrink-0">
+              {isGitHubUser ? "GitHub" : "Demo"}
+            </span>
+          </div>
+        )}
+
+        <p className="text-label-sm text-on-surface-variant">
+          Signed in as {displayName}
+          {email ? ` (${email})` : ""}
+        </p>
+      </div>
+
+      {/* Sign out card */}
+      <div className="rounded-xl bg-surface-container p-5 space-y-4">
+        <div>
+          <p className="text-body-md font-semibold text-on-background">Sign Out</p>
+          <p className="text-label-sm text-on-surface-variant mt-0.5">
+            This will end your session and redirect to the login page
+          </p>
+        </div>
+
+        <Button
+          onClick={handleSignOut}
+          disabled={signingOut || isLoading}
+          className={cn(
+            "gap-2 bg-red-500/10 text-red-400 border border-red-500/20",
+            "hover:bg-red-500/20 hover:text-red-300",
+            "disabled:opacity-50"
+          )}
+          variant="ghost"
+        >
+          {signingOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          {signingOut ? "Signing out…" : "Sign Out"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -786,7 +899,7 @@ export default function SettingsPage() {
               </h2>
             </div>
 
-            {loading && activeSection !== "appearance" && activeSection !== "claude" ? (
+            {loading && activeSection !== "appearance" && activeSection !== "claude" && activeSection !== "account" ? (
               <div className="space-y-4">
                 <Skeleton className="h-[180px] rounded-xl" />
                 <Skeleton className="h-[100px] rounded-xl" />
@@ -798,6 +911,7 @@ export default function SettingsPage() {
                 )}
                 {activeSection === "appearance" && <AppearanceSection />}
                 {activeSection === "claude" && <ClaudeSection />}
+                {activeSection === "account" && <AccountSection />}
               </>
             )}
 

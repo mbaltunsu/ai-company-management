@@ -42,11 +42,21 @@ interface KanbanColumnProps {
   status: ColumnStatus;
   tasks: Task[];
   onOpenDetail: (task: Task) => void;
+  projectNameMap?: Record<string, string>;
+  expandedTasks?: Set<string>;
+  onToggleExpand?: (id: string) => void;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export function KanbanColumn({ status, tasks, onOpenDetail }: KanbanColumnProps) {
+export function KanbanColumn({
+  status,
+  tasks,
+  onOpenDetail,
+  projectNameMap,
+  expandedTasks,
+  onToggleExpand,
+}: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   const cfg = columnConfig[status];
@@ -89,7 +99,20 @@ export function KanbanColumn({ status, tasks, onOpenDetail }: KanbanColumnProps)
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           <div className="space-y-2">
             {tasks.map((task) => (
-              <KanbanCard key={task.id} task={task} onOpenDetail={onOpenDetail} />
+              <KanbanCard
+                key={task.id}
+                task={task}
+                onOpenDetail={onOpenDetail}
+                projectName={
+                  task.projectId && projectNameMap
+                    ? projectNameMap[task.projectId]
+                    : undefined
+                }
+                isExpanded={expandedTasks?.has(task.id) ?? false}
+                onToggleExpand={
+                  onToggleExpand ? () => onToggleExpand(task.id) : undefined
+                }
+              />
             ))}
           </div>
         </SortableContext>
