@@ -1,18 +1,36 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createRequestLogger } from "@/lib/logger";
-import { testConnection } from "@/lib/claude";
+import { testConnectionWithKey } from "@/lib/claude";
 import type { ApiResult } from "@/types";
 
-// GET /api/claude/test
-export async function GET(): Promise<
-  NextResponse<ApiResult<{ connected: boolean; error?: string }>>
-> {
-  const log = createRequestLogger("GET /api/claude/test");
+// POST /api/claude/test — test a given API key without saving it
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<ApiResult<{ connected: boolean; error?: string }>>> {
+  const log = createRequestLogger("POST /api/claude/test");
+
+  let body: { apiKey?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({
+      data: { connected: false, error: "Invalid request body" },
+      error: null,
+    });
+  }
+
+  const apiKey = body.apiKey?.trim();
+  if (!apiKey) {
+    return NextResponse.json({
+      data: { connected: false, error: "No API key provided" },
+      error: null,
+    });
+  }
 
   log.info("Claude connection test requested");
 
   try {
-    const result = await testConnection();
+    const result = await testConnectionWithKey(apiKey);
     log.info({ connected: result.connected, error: result.error }, "Claude connection test completed");
     return NextResponse.json({ data: result, error: null });
   } catch (err) {

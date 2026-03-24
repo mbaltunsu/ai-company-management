@@ -122,12 +122,17 @@ Respond in JSON format only:
   return result;
 }
 
+/** Test connection using the key stored in DB */
 export async function testConnection(): Promise<{ connected: boolean; error?: string }> {
   const apiKey = await getApiKey();
   if (!apiKey) return { connected: false, error: "No API key configured" };
+  return testConnectionWithKey(apiKey);
+}
 
-  // Trim whitespace/newlines that may have been copied
+/** Test connection using a provided key (before saving) */
+export async function testConnectionWithKey(apiKey: string): Promise<{ connected: boolean; error?: string }> {
   const cleanKey = apiKey.trim();
+  if (!cleanKey) return { connected: false, error: "API key is empty" };
 
   try {
     const client = new Anthropic({ apiKey: cleanKey });
@@ -140,7 +145,6 @@ export async function testConnection(): Promise<{ connected: boolean; error?: st
     return { connected: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    // Extract Anthropic API error message if available
     const apiError = (err as { error?: { error?: { message?: string } } })?.error?.error?.message;
     const errorMsg = apiError || message;
     log.warn({ err }, "Claude connection test failed");

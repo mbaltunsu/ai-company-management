@@ -28,17 +28,17 @@ export function useClaudeSuggest() {
 
 // ─── Test Connection ──────────────────────────────────────────────────────────
 
-export function useClaudeTest(enabled: boolean) {
-  return useQuery({
-    queryKey: ["claude", "test"],
-    queryFn: async (): Promise<{ connected: boolean; error?: string }> => {
-      const res = await fetch("/api/claude/test");
+export function useClaudeTest() {
+  return useMutation({
+    mutationFn: async (apiKey: string): Promise<{ connected: boolean; error?: string }> => {
+      const res = await fetch("/api/claude/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey }),
+      });
       const json: ApiResult<{ connected: boolean; error?: string }> = await res.json();
       if (json.error) throw new Error(json.error);
       return json.data as { connected: boolean; error?: string };
     },
-    enabled,
-    staleTime: 0,
-    retry: false,
   });
 }

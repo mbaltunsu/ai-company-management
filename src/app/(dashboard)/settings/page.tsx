@@ -391,20 +391,13 @@ function ClaudeSection() {
   const [maskedKey, setMaskedKey] = useState("");
   const [hasExistingKey, setHasExistingKey] = useState(false);
   const [showKey, setShowKey] = useState(false);
-  const [testEnabled, setTestEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [testResult, setTestResult] = useState<{ connected: boolean; error?: string } | null>(null);
 
-  const { data: testResult, isLoading: testLoading, isFetching: testFetching } = useClaudeTest(testEnabled);
+  const testMutation = useClaudeTest();
 
-  // Reset test trigger once result arrives
-  useEffect(() => {
-    if (testResult !== undefined && !testFetching) {
-      setTestEnabled(false);
-    }
-  }, [testResult, testFetching]);
-
-  // Load existing masked key for display only — never put masked value in the input
+  // Load existing masked key for display only
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
@@ -416,6 +409,16 @@ function ClaudeSection() {
       })
       .catch(() => {});
   }, []);
+
+  function handleTest() {
+    if (!apiKey.trim()) return;
+    setTestResult(null);
+    setSaveStatus("idle");
+    testMutation.mutate(apiKey.trim(), {
+      onSuccess: (result) => setTestResult(result),
+      onError: () => setTestResult({ connected: false, error: "Request failed" }),
+    });
+  }
 
   async function handleSave() {
     if (!apiKey.trim()) return;
@@ -432,6 +435,7 @@ function ClaudeSection() {
         setMaskedKey(apiKey.slice(0, 10) + "•".repeat(Math.max(0, apiKey.length - 14)) + apiKey.slice(-4));
         setHasExistingKey(true);
         setApiKey("");
+        setTestResult(null);
       } else {
         setSaveStatus("error");
       }
@@ -442,13 +446,11 @@ function ClaudeSection() {
     }
   }
 
-  function handleTest() {
-    setTestEnabled(true);
-  }
-
   const isConnected = testResult?.connected === true;
-  const testDone = testResult !== undefined;
-  const isTesting = testLoading || testFetching;
+  const testDone = testResult !== null;
+  const isTesting = testMutation.isPending;
+  // Save only enabled after a successful test
+  const canSave = isConnected && apiKey.trim().length > 0;
 
   const inputClass =
     "bg-surface-container-high border-[#1f1f23] text-on-background placeholder:text-on-surface-dim focus-visible:ring-primary focus-visible:border-primary font-mono";
@@ -528,16 +530,8 @@ function ClaudeSection() {
           </button>
         </div>
 
-        {/* Actions */}
+        {/* Actions — Test first, then Save (only after successful test) */}
         <div className="flex items-center gap-3 flex-wrap">
-          <Button
-            onClick={handleSave}
-            disabled={saving || !apiKey.trim()}
-            className="bg-primary text-white hover:bg-primary/90 gap-2"
-          >
-            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            {saving ? "Saving…" : "Save"}
-          </Button>
           <Button
             variant="ghost"
             onClick={handleTest}
@@ -546,6 +540,14 @@ function ClaudeSection() {
           >
             {isTesting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {isTesting ? "Testing…" : "Test Connection"}
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || !canSave}
+            className="bg-primary text-white hover:bg-primary/90 gap-2"
+          >
+            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {saving ? "Saving…" : "Save"}
           </Button>
           {saveStatus === "saved" && (
             <span className="flex items-center gap-1.5 text-label-sm text-success">
