@@ -25,13 +25,22 @@ async function getApiKey(): Promise<string | null> {
     return null;
   }
 
-  log.info({ rawLength: raw.length, isEnc: isEncrypted(raw) }, "Read Claude API key from DB");
+  log.info({
+    rawLength: raw.length,
+    rawFirst20: raw.slice(0, 20),
+    rawType: typeof data.value,
+    isEnc: isEncrypted(raw),
+  }, "Read Claude API key from DB");
 
   // Decrypt if stored encrypted, otherwise return as-is (legacy)
   try {
     if (isEncrypted(raw)) {
       const decrypted = decrypt(raw);
-      log.info({ decryptedLength: decrypted.length }, "Decrypted Claude API key");
+      log.info({
+        decryptedLength: decrypted.length,
+        decryptedFirst10: decrypted.slice(0, 10),
+        decryptedLast4: decrypted.slice(-4),
+      }, "Decrypted Claude API key");
       return decrypted;
     }
   } catch (err) {
