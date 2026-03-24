@@ -32,6 +32,7 @@ export async function GET(): Promise<NextResponse<ApiResult<Project[]>>> {
       githubRepo: row.github_repo ?? null,
       description: row.description ?? null,
       isAutoDiscovered: row.is_auto_discovered ?? false,
+      parentId: row.parent_id ?? null,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
@@ -88,6 +89,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiResult
         github_repo: githubRepo ?? null,
         description: description ?? null,
         is_auto_discovered: false,
+        parent_id: null,
       })
       .select()
       .single();
@@ -114,6 +116,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiResult
       githubRepo: data.github_repo ?? null,
       description: data.description ?? null,
       isAutoDiscovered: data.is_auto_discovered ?? false,
+      parentId: data.parent_id ?? null,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };

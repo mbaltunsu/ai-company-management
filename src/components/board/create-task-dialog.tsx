@@ -20,9 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useProjects } from "@/hooks/use-projects";
 import { useGitHubAgents } from "@/hooks/use-agents";
-import { useClaudeSuggest } from "@/hooks/use-claude";
 import { useCreateTask, useUpdateTask } from "@/hooks/use-tasks";
-import type { Task, Project } from "@/types";
+import type { Task, Agent, Project } from "@/types";
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
 
@@ -32,6 +31,8 @@ interface CreateTaskDialogProps {
   editTask?: Task | null;
   defaultProjectId?: string | null;
   onSaved?: (task: Task) => void;
+  /** Called with the newly created task and available agents BEFORE the dialog closes. */
+  onTaskCreated?: (task: Task, agents: Agent[]) => void;
 }
 
 const PRIORITY_OPTIONS: { value: Task["priority"]; label: string }[] = [
@@ -49,6 +50,7 @@ export function CreateTaskDialog({
   editTask,
   defaultProjectId,
   onSaved,
+  onTaskCreated,
 }: CreateTaskDialogProps) {
   const isEditing = Boolean(editTask);
 
@@ -56,8 +58,6 @@ export function CreateTaskDialog({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Task["priority"]>("normal");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [aiToast, setAiToast] = useState(false);
-  const [aiRunning, setAiRunning] = useState(false);
 
   const { data: projects } = useProjects();
   const selectedProject = projects?.find((p) => p.id === selectedProjectId) ?? null;
@@ -65,7 +65,6 @@ export function CreateTaskDialog({
 
   const createTask = useCreateTask();
   const updateTask = useUpdateTask(selectedProjectId);
-  const claudeSuggest = useClaudeSuggest();
 
   // Seed form when editing
   useEffect(() => {
@@ -80,11 +79,9 @@ export function CreateTaskDialog({
       setPriority("normal");
       setSelectedProjectId(defaultProjectId ?? null);
     }
-    setAiToast(false);
-    setAiRunning(false);
   }, [open, editTask, defaultProjectId]);
 
-  const isBusy = createTask.isPending || updateTask.isPending || aiRunning;
+  const isBusy = createTask.isPending || updateTask.isPending;
 
   async function handleSave() {
     if (!title.trim()) return;
@@ -106,48 +103,18 @@ export function CreateTaskDialog({
           priority,
           projectId: selectedProjectId,
         });
-      }
 
-      // Auto Claude suggestion — fire and forget, never block save
-      if (!isEditing) {
-        void runClaudeSuggestion(savedTask);
+        // Notify page-level handler BEFORE closing so the async work
+        // is owned by the caller and survives unmount.
+        if (onTaskCreated) {
+          onTaskCreated(savedTask, agents ?? []);
+        }
       }
 
       onSaved?.(savedTask);
       onOpenChange(false);
     } catch {
       // errors are surfaced by mutation state; silent here
-    }
-  }
-
-  async function runClaudeSuggestion(task: Task) {
-    const availableAgents = (agents ?? []).map((a) => ({
-      name: a.name,
-      description: a.description,
-    }));
-
-    if (availableAgents.length === 0) return;
-
-    setAiRunning(true);
-    try {
-      const suggestion = await claudeSuggest.mutateAsync({
-        taskTitle: task.title,
-        taskDescription: task.description ?? undefined,
-        availableAgents,
-      });
-
-      await updateTask.mutateAsync({
-        id: task.id,
-        assignedAgents: suggestion.suggestedAgents,
-        suggestedPrompt: suggestion.prompt,
-      });
-
-      setAiToast(true);
-      setTimeout(() => setAiToast(false), 3500);
-    } catch {
-      // no API key or rate limited — skip silently
-    } finally {
-      setAiRunning(false);
     }
   }
 
@@ -270,20 +237,12 @@ export function CreateTaskDialog({
           </div>
 
           {/* AI hint */}
-          {!isEditing && selectedProject?.githubRepo && (
+          {!isEditing && selectedProject?.githubRepo && onTaskCreated && (
             <div className="flex items-center gap-2 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-3 py-2">
               <Sparkles className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
               <p className="text-[11px] text-indigo-300/80">
                 Claude will auto-assign agents after saving.
               </p>
-            </div>
-          )}
-
-          {/* AI toast */}
-          {aiToast && (
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
-              <Sparkles className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-              <p className="text-[11px] text-emerald-300">AI assigned agents to this task</p>
             </div>
           )}
         </div>

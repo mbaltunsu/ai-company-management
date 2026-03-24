@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { Sparkles, Pencil, Trash2, AlertTriangle, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,11 +59,20 @@ interface TaskDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDelete: (id: string) => void;
+  projectGithubRepo?: string | null;
+  onAskClaude?: (task: Task) => void;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export function TaskDetailSheet({ task, open, onOpenChange, onDelete }: TaskDetailSheetProps) {
+export function TaskDetailSheet({
+  task,
+  open,
+  onOpenChange,
+  onDelete,
+  projectGithubRepo,
+  onAskClaude,
+}: TaskDetailSheetProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -182,6 +191,16 @@ export function TaskDetailSheet({ task, open, onOpenChange, onDelete }: TaskDeta
             >
               <Pencil className="h-3.5 w-3.5" />
               Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!onAskClaude || !projectGithubRepo}
+              className="gap-1.5 border-indigo-500/30 bg-transparent text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 text-[12px] disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => onAskClaude?.(task!)}
+            >
+              <BrainCircuit className="h-3.5 w-3.5" />
+              Ask Claude
             </Button>
             <Button
               variant="outline"

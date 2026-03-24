@@ -45,6 +45,7 @@ export async function GET(
       githubRepo: data.github_repo ?? null,
       description: data.description ?? null,
       isAutoDiscovered: data.is_auto_discovered ?? false,
+      parentId: data.parent_id ?? null,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };
@@ -126,6 +127,7 @@ export async function PATCH(
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.githubRepo !== undefined) dbUpdates.github_repo = updates.githubRepo;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.parentId !== undefined) dbUpdates.parent_id = updates.parentId;
 
     const { data, error } = await supabase
       .from("projects")
@@ -155,6 +157,7 @@ export async function PATCH(
       githubRepo: data.github_repo ?? null,
       description: data.description ?? null,
       isAutoDiscovered: data.is_auto_discovered ?? false,
+      parentId: data.parent_id ?? null,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     };

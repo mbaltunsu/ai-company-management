@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Columns3, Plus, ChevronDown } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,9 @@ import { CreateTaskDialog } from "@/components/board/create-task-dialog";
 import { TaskDetailSheet } from "@/components/board/task-detail-sheet";
 import { useProjects } from "@/hooks/use-projects";
 import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
-import type { Task, Project } from "@/types";
+import { useClaudeSuggest } from "@/hooks/use-claude";
+import { useGitHubAgents } from "@/hooks/use-agents";
+import type { Task, Agent, Project } from "@/types";
 
 // ─── Skeleton columns ──────────────────────────────────────────────────────────
 
@@ -50,8 +52,14 @@ export default function BoardPage() {
   const { data: tasks, isLoading: loadingTasks } = useTasks(selectedProjectId);
   const updateTask = useUpdateTask(selectedProjectId);
   const deleteTask = useDeleteTask(selectedProjectId);
+  const claudeSuggest = useClaudeSuggest();
 
   const selectedProject = projects?.find((p: Project) => p.id === selectedProjectId) ?? null;
+
+  // Agents for the task currently shown in the detail sheet (keyed by its project's github repo)
+  const detailTaskProject =
+    detailTask ? (projects?.find((p) => p.id === detailTask.projectId) ?? null) : null;
+  const { data: detailTaskAgents } = useGitHubAgents(detailTaskProject?.githubRepo ?? null);
 
   function handleDragUpdate(payload: { id: string; status?: Task["status"]; order?: number }) {
     updateTask.mutate(payload);
@@ -65,6 +73,50 @@ export default function BoardPage() {
     setDetailTask(task);
     setDetailOpen(true);
   }
+
+  /**
+   * Runs Claude agent suggestion for a task, then persists the result.
+   * Called from both CreateTaskDialog (new task) and TaskDetailSheet (Ask Claude button).
+   */
+  const runClaudeSuggestion = useCallback(
+    async (task: Task, availableAgents: Agent[]) => {
+      if (availableAgents.length === 0) return;
+      try {
+        const suggestion = await claudeSuggest.mutateAsync({
+          taskTitle: task.title,
+          taskDescription: task.description ?? undefined,
+          availableAgents: availableAgents.map((a) => ({
+            name: a.name,
+            description: a.description,
+          })),
+        });
+        updateTask.mutate({
+          id: task.id,
+          assignedAgents: suggestion.suggestedAgents,
+          suggestedPrompt: suggestion.prompt,
+        });
+      } catch {
+        // No API key or rate-limited — fail silently
+      }
+    },
+    [claudeSuggest, updateTask]
+  );
+
+  /** Handler passed to CreateTaskDialog — fires BEFORE dialog closes. */
+  const handleTaskCreated = useCallback(
+    (task: Task, agents: Agent[]) => {
+      void runClaudeSuggestion(task, agents);
+    },
+    [runClaudeSuggestion]
+  );
+
+  /** Handler passed to TaskDetailSheet's "Ask Claude" button. */
+  const handleAskClaude = useCallback(
+    (task: Task) => {
+      void runClaudeSuggestion(task, detailTaskAgents ?? []);
+    },
+    [runClaudeSuggestion, detailTaskAgents]
+  );
 
   const isLoading = loadingTasks;
   const hasTasks = (tasks?.length ?? 0) > 0;
@@ -163,6 +215,7 @@ export default function BoardPage() {
               tasks={tasks ?? []}
               onUpdateTask={handleDragUpdate}
               onOpenDetail={handleOpenDetail}
+              projects={projects ?? []}
             />
           )}
         </div>
@@ -173,6 +226,7 @@ export default function BoardPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         defaultProjectId={selectedProjectId}
+        onTaskCreated={handleTaskCreated}
       />
 
       {/* Detail sheet */}
@@ -181,6 +235,8 @@ export default function BoardPage() {
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onDelete={handleDeleteTask}
+        projectGithubRepo={detailTaskProject?.githubRepo}
+        onAskClaude={handleAskClaude}
       />
     </>
   );

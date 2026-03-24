@@ -90,20 +90,39 @@ export function useUpdateTask(projectId: string | null) {
       return json.data;
     },
     onMutate: async (newData) => {
+      // Cancel in-flight refetches for both cache keys to prevent overwrites
       await queryClient.cancelQueries({ queryKey: taskKeys.all(projectId) });
-      const previous = queryClient.getQueryData(taskKeys.all(projectId));
-      queryClient.setQueryData(taskKeys.all(projectId), (old: Task[] | undefined) =>
-        old?.map((t) => (t.id === newData.id ? { ...t, ...newData } : t))
-      );
-      return { previous };
+      await queryClient.cancelQueries({ queryKey: taskKeys.all(null) });
+
+      const previousForProject = queryClient.getQueryData(taskKeys.all(projectId));
+      const previousForAll = queryClient.getQueryData(taskKeys.all(null));
+
+      const applyUpdate = (old: Task[] | undefined) =>
+        old?.map((t) => (t.id === newData.id ? { ...t, ...newData } : t));
+
+      queryClient.setQueryData(taskKeys.all(projectId), applyUpdate);
+      // Only update the all-projects cache when we are not already in that view
+      // (avoids double-updating when projectId is null)
+      if (projectId !== null) {
+        queryClient.setQueryData(taskKeys.all(null), applyUpdate);
+      }
+
+      return { previousForProject, previousForAll };
     },
     onError: (_err, _newData, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(taskKeys.all(projectId), context.previous);
+      if (context?.previousForProject !== undefined) {
+        queryClient.setQueryData(taskKeys.all(projectId), context.previousForProject);
+      }
+      if (context?.previousForAll !== undefined) {
+        queryClient.setQueryData(taskKeys.all(null), context.previousForAll);
       }
     },
-    onSettled: () => {
+    onSuccess: () => {
+      // Only invalidate on success — onError already rolled back via setQueryData
       queryClient.invalidateQueries({ queryKey: taskKeys.all(projectId) });
+      if (projectId !== null) {
+        queryClient.invalidateQueries({ queryKey: taskKeys.all(null) });
+      }
     },
   });
 }

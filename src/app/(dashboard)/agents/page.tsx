@@ -6,8 +6,10 @@ import { Bot, ChevronRight, ExternalLink, FolderOpen } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { useProjects } from "@/hooks/use-projects";
 import { useAgents } from "@/hooks/use-agents";
+import { LibrarySection } from "@/components/agents/library-section";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -124,6 +126,19 @@ export default function AgentsPage() {
               View and manage agents across all your projects.
             </p>
           </div>
+        </div>
+
+        {/* Agent Libraries */}
+        <LibrarySection />
+
+        <Separator className="bg-outline-variant" />
+
+        {/* Per-project agents heading */}
+        <div>
+          <h2 className="text-headline-sm font-semibold text-on-background">Project Agents</h2>
+          <p className="mt-0.5 text-body-md text-on-surface-variant">
+            Agents configured per project in your local filesystem.
+          </p>
         </div>
 
         {/* Content */}
