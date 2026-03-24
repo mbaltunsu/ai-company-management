@@ -7,18 +7,33 @@ const log = logger.child({ service: "ClaudeService" });
 
 async function getApiKey(): Promise<string | null> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("app_settings")
     .select("value")
     .eq("key", "claudeApiKey")
     .single();
 
-  const raw = data?.value ? JSON.parse(JSON.stringify(data.value)) : null;
-  if (!raw) return null;
+  if (error) {
+    log.warn({ error }, "Failed to read claudeApiKey from app_settings");
+    return null;
+  }
+
+  // JSONB stores the value — extract it as a string
+  const raw = data?.value != null ? String(data.value) : null;
+  if (!raw) {
+    log.warn("Claude API key is empty or not set");
+    return null;
+  }
+
+  log.info({ rawLength: raw.length, isEnc: isEncrypted(raw) }, "Read Claude API key from DB");
 
   // Decrypt if stored encrypted, otherwise return as-is (legacy)
   try {
-    if (isEncrypted(raw)) return decrypt(raw);
+    if (isEncrypted(raw)) {
+      const decrypted = decrypt(raw);
+      log.info({ decryptedLength: decrypted.length }, "Decrypted Claude API key");
+      return decrypted;
+    }
   } catch (err) {
     log.error({ err }, "Failed to decrypt Claude API key");
     return null;

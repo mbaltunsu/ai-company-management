@@ -77,8 +77,8 @@ const config: Config = {
         xl: "0.5rem",
       },
       fontFamily: {
-        sans: ["Inter", "var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "var(--font-geist-mono)", "monospace"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       fontSize: {
         "display-sm": ["24px", { lineHeight: "32px", fontWeight: "600" }],
