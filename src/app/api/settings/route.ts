@@ -34,8 +34,18 @@ async function readSettings(
 
   if (error || !data) return { ...DEFAULTS };
 
+  // JSONB values may come back as any JSON type. Safely extract string values,
+  // handling the case where PostgREST returns a double-quoted string.
+  function jsonbToString(v: unknown): string {
+    if (v == null) return "";
+    if (typeof v === "string") {
+      return v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1) : v;
+    }
+    return JSON.stringify(v);
+  }
+
   const map = Object.fromEntries(
-    (data as Array<{ key: string; value: string }>).map((r) => [r.key, r.value])
+    (data as Array<{ key: string; value: unknown }>).map((r) => [r.key, jsonbToString(r.value)])
   );
 
   return {
@@ -168,9 +178,12 @@ export async function PATCH(
     }
 
     const updated = await readSettings(supabase);
+    // Decrypt sensitive values before masking for the client response
+    updated.claudeApiKey = decryptIfNeeded(updated.claudeApiKey ?? "");
+    updated.githubToken = decryptIfNeeded(updated.githubToken);
     log.info({ keys: rows.map((r) => r.key) }, "Settings updated");
 
-    return NextResponse.json({ data: updated, error: null });
+    return NextResponse.json({ data: maskSettings(updated), error: null });
   } catch (err) {
     log.error({ err }, "Unexpected error updating settings");
     return NextResponse.json(

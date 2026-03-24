@@ -18,8 +18,22 @@ async function getApiKey(): Promise<string | null> {
     return null;
   }
 
-  // JSONB stores the value — extract it as a string
-  const raw = data?.value != null ? String(data.value) : null;
+  // JSONB column — the Supabase client parses JSON automatically, but the
+  // runtime type can vary: a JS string, a number, or even a JSON-wrapped
+  // string with extra quotes. Unwrap safely.
+  let raw: string | null = null;
+  if (data?.value != null) {
+    const v = data.value;
+    if (typeof v === "string") {
+      // If JSONB returned a double-encoded string (e.g. '"iv:tag:cipher"'),
+      // strip the outer quotes. This happens when the JSONB column stores a
+      // JSON string and the client or PostgREST layer doesn't fully unwrap it.
+      raw = v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1) : v;
+    } else {
+      // Fallback for unexpected types (number, object, etc.)
+      raw = JSON.stringify(v);
+    }
+  }
   if (!raw) {
     log.warn("Claude API key is empty or not set");
     return null;
@@ -29,6 +43,7 @@ async function getApiKey(): Promise<string | null> {
     rawLength: raw.length,
     rawFirst20: raw.slice(0, 20),
     rawType: typeof data.value,
+    rawValueFirstChar: typeof data.value === "string" ? data.value.charAt(0) : "N/A",
     isEnc: isEncrypted(raw),
   }, "Read Claude API key from DB");
 

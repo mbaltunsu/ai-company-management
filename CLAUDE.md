@@ -175,6 +175,8 @@ See [TEAM.md](TEAM.md) for the full agent roster.
 - git-rules.md
 - project-context.md
 - tech-stack.md
+- backend.md
+- frontend.md
 - Always use skills or agents that are specialized in frontend, UI/UX design when designing or developing the layout if they exist
 -
 
