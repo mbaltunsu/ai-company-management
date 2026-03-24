@@ -1,14 +1,34 @@
 # Project Team
 
-The following agents are active in this project:
+## Active Agents
 
-- **api-designer**: Use this agent when designing new APIs, creating API specifications, or refactoring existing API architecture for scalability and developer experience. Invoke when you need REST/GraphQL endpoint design, OpenAPI documentation, authentication patterns, or API versioning strategies.
-- **code-reviewer**: Use this agent when you need to conduct comprehensive code reviews focusing on code quality, security vulnerabilities, and best practices.
-- **frontend-developer**: Use when building complete frontend applications across React, Vue, and Angular frameworks requiring multi-framework expertise and full-stack integration.
-- **git-workflow-manager**: Use this agent when you need to design, establish, or optimize Git workflows, branching strategies, and merge management for a project or team.
-- **nextjs-developer**: Use this agent when building production Next.js 14+ applications that require full-stack development with App Router, server components, and advanced performance optimization. Invoke when you need to architect or implement complete Next.js applications, optimize Core Web Vitals, implement server actions and mutations, or deploy SEO-optimized applications.
-- **performance-monitor**: Use when establishing observability infrastructure to track system metrics, detect performance anomalies, and optimize resource usage across multi-agent environments.
-- **typescript-pro**: Use when implementing TypeScript code requiring advanced type system patterns, complex generics, type-level programming, or end-to-end type safety across full-stack applications.
-- **ui-designer**: Use this agent when designing visual interfaces, creating design systems, building component libraries, or refining user-facing aesthetics requiring expert visual design, interaction patterns, and accessibility considerations.
+- **api-designer**: REST API design, OpenAPI docs, auth patterns, versioning. Use for new endpoints or refactoring.
+- **code-reviewer**: Code quality, security, best practices. Use after major features or before merges.
+- **frontend-developer**: React components, pages, hooks. Use for any UI work alongside ui-designer.
+- **git-workflow-manager**: Branching, merge strategies, worktrees. Use for parallel work coordination.
+- **nextjs-developer**: Next.js 16 App Router, API routes, server components, Supabase integration. Primary backend agent.
+- **performance-monitor**: Observability, metrics, performance optimization. Use for load testing and monitoring.
+- **typescript-pro**: Advanced types, generics, type safety. Use for complex type-level work.
+- **ui-designer**: Visual design, design systems, accessibility. Use with UI/UX Pro Max skill for design decisions.
+
+## Agent Assignment Guide
+
+| Task Type | Primary Agent | Support Agent |
+|-----------|--------------|---------------|
+| New API route | nextjs-developer | api-designer |
+| New page/component | frontend-developer | ui-designer |
+| Bug fix (backend) | nextjs-developer | code-reviewer |
+| Bug fix (frontend) | frontend-developer | code-reviewer |
+| DnD / canvas work | frontend-developer | typescript-pro |
+| Design system changes | ui-designer | frontend-developer |
+| Performance issues | performance-monitor | nextjs-developer |
+| Git workflow | git-workflow-manager | — |
+| Type system refactor | typescript-pro | nextjs-developer |
+
+## Parallelization Strategy
+- Backend + Frontend agents run in parallel when features span both
+- Code reviewer runs after feature agents complete
+- UI designer consulted before frontend-developer for design decisions
+- Git workflow manager used when multiple agents need isolated worktrees
 
 > If you add agents manually to `.claude/agents/`, add them to this file too.

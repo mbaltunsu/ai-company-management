@@ -1,23 +1,56 @@
 # Architecture
 
 ## Overview
-Single-page dashboard application (monolith) built with Next.js. The UI layer communicates with a backend via Next.js API routes, which integrate with GitHub's API and the local filesystem to manage Claude Code project data. All project state (agents, rules, skills, issues) is persisted per-project.
+Full-stack dashboard application built with Next.js 16 App Router. Uses route groups: `(dashboard)` for authenticated pages with sidebar, `/login` standalone. Backend is Next.js API routes integrating with GitHub API (via OAuth), Claude API, and Supabase. An MCP server provides task management tools for Claude Code.
 
 ## Key Components
-- **Dashboard UI** — Next.js pages/app router with shadcn/ui components; project overview, progress charts, commit graphs, branch/release/version visualizations
-- **API Routes** — Next.js API routes serving as the backend layer; handle GitHub integration, project config reads/writes, issue sync
-- **GitHub Integration Layer** — Wraps GitHub REST API for issue creation/sync, commit fetching, branch/release/version data
-- **Project Config Manager** — Reads/writes per-project `.claude/` directories (agents, rules, skills)
-- **Logging System** — Structured logging layer used across API routes and background jobs for debugging and future monitoring
+- **Dashboard UI** — Next.js pages with shadcn/ui; 14 routes including dashboard, projects, board, graph, tree, agents, skills, issues, goals, settings
+- **API Routes** — 27 endpoints handling GitHub integration, Claude AI, tasks, goals, skills, libraries, settings, auth
+- **GitHub Integration** — `src/lib/github.ts` wraps @octokit/rest; OAuth token from NextAuth session; fetches repos, commits, branches, releases, issues, and `.claude/agents/` files
+- **Claude Integration** — `src/lib/claude.ts` wraps @anthropic-ai/sdk; generates task agent suggestions and prompts
+- **Supabase Layer** — `src/lib/supabase/server.ts` (service_role key) and `src/lib/supabase/client.ts` (anon key); tables: projects, tasks, goals, skills, agent_libraries, app_settings, activity_log
+- **Encryption** — `src/lib/encryption.ts` for AES-256-CBC encryption of stored API keys
+- **Auth** — NextAuth.js v5 with GitHub OAuth + Credentials providers; middleware gate on all dashboard routes
+- **Logging** — Pino-based structured logging via `src/lib/logger.ts`
+- **MCP Server** — `mcp-server/` standalone package; tools: get_tasks, update_task_status
+
+## Route Structure
+```
+src/app/
+├── layout.tsx              # Root: html, body, ThemeInitializer, Providers
+├── login/page.tsx          # Standalone login page
+├── (dashboard)/            # Route group with sidebar layout
+│   ├── layout.tsx          # Sidebar + main content wrapper
+│   ├── page.tsx            # Dashboard overview
+│   ├── projects/           # Project list + detail + sub-pages
+│   ├── board/              # Kanban board
+│   ├── graph/              # Network graph
+│   ├── tree/               # Project hierarchy tree
+│   ├── agents/             # Agent management + libraries
+│   ├── skills/             # Skills management
+│   ├── issues/             # GitHub issues
+│   ├── goals/              # Goal tracking
+│   └── settings/           # GitHub, Claude, Appearance, Account
+└── api/                    # 27 API routes
+```
+
+## Data Flow
+- UI hooks (`src/hooks/use-*.ts`) → TanStack Query → API routes → Supabase / GitHub / Claude
+- Optimistic updates for DnD (Kanban board task moves)
+- Session-based GitHub token (OAuth) passed through API routes to GitHubService
+- Encrypted API keys stored in Supabase app_settings, decrypted server-side only
 
 ## Patterns
-- Layered architecture: UI → API routes → service layer → external integrations (GitHub)
-- Repository pattern for data access (project configs, GitHub data)
-- No direct GitHub API calls or filesystem access from UI components
-- Each project is self-contained: its own agents, rules, skills, issues, goals
+- Layered architecture: UI → hooks (TanStack Query) → API routes → services → external APIs
+- TanStack Query key factories per domain (projectKeys, taskKeys, agentKeys, etc.)
+- snake_case ↔ camelCase mapping at API route boundary
+- Zod validation on all POST/PATCH payloads
+- Structured logging on every API route (info success, warn client errors, error failures)
+- Dynamic imports with `ssr: false` for canvas components (graph, force-graph)
 
 ## Constraints
-- No direct data access or external API calls from UI/presentation layer
-- Business logic lives in service modules under `src/lib/` or `src/services/`
-- All API routes must log requests and errors via the structured logging system
-- Logging must be structured (JSON-compatible) to support future monitoring ingestion
+- No direct Supabase/GitHub/Claude calls from UI components — always through API routes
+- Business logic in `src/lib/` service modules
+- All API routes must use `createRequestLogger()` for structured logging
+- API keys must be encrypted before storage (use `src/lib/encryption.ts`)
+- GitHub features require OAuth session — return 401 if not connected
