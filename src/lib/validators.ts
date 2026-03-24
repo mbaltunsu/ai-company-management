@@ -15,6 +15,7 @@ export const updateProjectSchema = z.object({
   name: z.string().min(1).optional(),
   githubRepo: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
+  parentId: z.string().uuid().nullable().optional(),
 });
 
 export const scanDirectorySchema = z.object({
@@ -131,6 +132,16 @@ export const updateSkillSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().nullable().optional(),
   whenToUse: z.string().nullable().optional(),
+});
+
+// ============================================================
+// Agent Library Validators
+// ============================================================
+
+export const createLibrarySchema = z.object({
+  name: z.string().min(1).max(200),
+  repo: z.string().min(3).max(200),
+  description: z.string().nullable().optional(),
 });
 
 // ============================================================

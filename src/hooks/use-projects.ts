@@ -98,3 +98,24 @@ export function useCreateProject() {
     },
   });
 }
+
+async function updateProject(id: string, payload: { parentId?: string | null }): Promise<Project> {
+  const res = await fetch(`/api/projects/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json: ApiResult<Project> = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json.data as Project;
+}
+
+export function useUpdateProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: string; parentId?: string | null }) => updateProject(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.all });
+    },
+  });
+}

@@ -9,6 +9,7 @@ export interface Project {
   githubRepo: string | null;
   description: string | null;
   isAutoDiscovered: boolean;
+  parentId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -220,6 +221,20 @@ export interface Task {
   suggestedPrompt: string | null;
   priority: "urgent" | "high" | "normal" | "low";
   order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// Agent Library Types
+// ============================================================
+
+export interface AgentLibrary {
+  id: string;
+  name: string;
+  repo: string;
+  description: string | null;
+  isDefault: boolean;
   createdAt: string;
   updatedAt: string;
 }
