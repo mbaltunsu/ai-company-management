@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Pencil, Trash2, AlertTriangle, BrainCircuit } from "lucide-react";
+import { Sparkles, Pencil, Trash2, AlertTriangle, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { CreateTaskDialog } from "./create-task-dialog";
-import type { Task } from "@/types";
+import type { Task, ClaudeSuggestion } from "@/types";
 
 // ─── Priority / Status labels ──────────────────────────────────────────────────
 
@@ -60,7 +61,8 @@ interface TaskDetailSheetProps {
   onOpenChange: (open: boolean) => void;
   onDelete: (id: string) => void;
   projectGithubRepo?: string | null;
-  onAskClaude?: (task: Task) => void;
+  onAskClaude?: (task: Task) => Promise<ClaudeSuggestion>;
+  onApplySuggestion?: (taskId: string, agents: string[], prompt: string) => void;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -72,9 +74,14 @@ export function TaskDetailSheet({
   onDelete,
   projectGithubRepo,
   onAskClaude,
+  onApplySuggestion,
 }: TaskDetailSheetProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestion, setSuggestion] = useState<ClaudeSuggestion | null>(null);
+  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
+  const [editedPrompt, setEditedPrompt] = useState("");
 
   if (!task) return null;
 
@@ -90,9 +97,46 @@ export function TaskDetailSheet({
     onOpenChange(false);
   }
 
+  async function handleAskClaudeClick() {
+    if (!task || !onAskClaude) return;
+    setSuggesting(true);
+    setSuggestion(null);
+    try {
+      const result = await onAskClaude(task);
+      setSuggestion(result);
+      setSelectedAgents(new Set(result.suggestedAgents));
+      setEditedPrompt(result.prompt);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to get suggestion");
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
+  function handleApplyClick() {
+    if (!task || !onApplySuggestion) return;
+    onApplySuggestion(task.id, Array.from(selectedAgents), editedPrompt);
+    setSuggestion(null);
+  }
+
+  function toggleAgent(name: string) {
+    setSelectedAgents((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
+      <Sheet
+        open={open}
+        onOpenChange={(value) => {
+          if (!value) setSuggestion(null);
+          onOpenChange(value);
+        }}
+      >
         <SheetContent
           side="right"
           className="w-[400px] bg-[#111113] border-l border-white/[0.06] text-[#f8f8f8] flex flex-col p-0"
@@ -160,6 +204,104 @@ export function TaskDetailSheet({
               )}
             </div>
 
+            {/* Ask Claude — below agents */}
+            {onAskClaude && projectGithubRepo && (
+              <div className="space-y-3">
+                {!suggestion && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAskClaudeClick}
+                    disabled={suggesting}
+                    className="gap-2 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/10 text-[12px]"
+                  >
+                    {suggesting ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    {suggesting ? "Suggesting..." : "Ask Claude for Agent Suggestions"}
+                  </Button>
+                )}
+
+                {/* Confirmation card */}
+                {suggestion && (
+                  <div className="rounded-xl bg-[#1a1a1d] border border-indigo-500/20 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-indigo-400" />
+                      <span className="text-[13px] font-semibold text-[#f8f8f8]">
+                        Claude suggests these agents
+                      </span>
+                    </div>
+
+                    {/* Agent checkboxes */}
+                    <div className="space-y-2">
+                      {suggestion.suggestedAgents.map((name) => (
+                        <button
+                          key={name}
+                          onClick={() => toggleAgent(name)}
+                          className={cn(
+                            "flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-[12px] transition-colors text-left",
+                            selectedAgents.has(name)
+                              ? "bg-indigo-500/10 text-indigo-300"
+                              : "bg-white/[0.04] text-[#a1a1aa] hover:bg-white/[0.07]"
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "h-4 w-4 rounded border flex items-center justify-center shrink-0",
+                              selectedAgents.has(name)
+                                ? "bg-indigo-500 border-indigo-500"
+                                : "border-[#3f3f46]"
+                            )}
+                          >
+                            {selectedAgents.has(name) && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Editable prompt */}
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#a1a1aa]">
+                        Suggested Prompt
+                      </span>
+                      <textarea
+                        value={editedPrompt}
+                        onChange={(e) => setEditedPrompt(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-lg bg-[#0a0a0b] border border-[#27272a] p-3 text-[11px] font-mono text-[#f8f8f8]/70 resize-y focus:outline-none focus:border-indigo-500/50"
+                      />
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleApplyClick}
+                        disabled={selectedAgents.size === 0}
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] gap-1.5 disabled:opacity-40"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        Apply Selected ({selectedAgents.size})
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSuggestion(null)}
+                        className="text-[#a1a1aa] hover:text-[#f8f8f8] text-[12px]"
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Claude prompt */}
             {task.suggestedPrompt && (
               <>
@@ -191,16 +333,6 @@ export function TaskDetailSheet({
             >
               <Pencil className="h-3.5 w-3.5" />
               Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!onAskClaude || !projectGithubRepo}
-              className="gap-1.5 border-indigo-500/30 bg-transparent text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 text-[12px] disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={() => onAskClaude?.(task!)}
-            >
-              <BrainCircuit className="h-3.5 w-3.5" />
-              Ask Claude
             </Button>
             <Button
               variant="outline"

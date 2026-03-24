@@ -21,6 +21,7 @@ interface ProjectTreeNodeProps {
   children: Project[];
   allProjects: Project[];
   depth: number;
+  isLast: boolean;
   onSetParent: (projectId: string, parentId: string | null) => void;
 }
 
@@ -43,6 +44,7 @@ export function ProjectTreeNode({
   children,
   allProjects,
   depth,
+  isLast,
   onSetParent,
 }: ProjectTreeNodeProps) {
   const [expanded, setExpanded] = useState(true);
@@ -60,8 +62,38 @@ export function ProjectTreeNode({
       ? "text-[#818cf8]"
       : "text-[#52525b]";
 
+  // The horizontal connector lands at the vertical midpoint of the node row (20px = half of 40px row).
+  // The vertical line left-offset aligns with the connector origin for each depth level.
+  // Each depth step is 24px wide; the line sits at (depth-1)*24 + 20 from the container left edge.
+  const lineLeft = (depth - 1) * 24 + 20;
+
   return (
-    <div>
+    <div className="relative">
+      {/* Vertical line — runs from top down to node midpoint (last child) or full height (non-last) */}
+      {depth > 0 && (
+        <div
+          className="absolute border-l border-[#27272a] pointer-events-none"
+          style={{
+            left: `${lineLeft}px`,
+            top: 0,
+            height: isLast ? "20px" : "100%",
+          }}
+        />
+      )}
+
+      {/* Horizontal connector from vertical line to node content */}
+      {depth > 0 && (
+        <div
+          className="absolute border-t border-[#27272a] pointer-events-none"
+          style={{
+            left: `${lineLeft}px`,
+            top: "20px",
+            width: "16px",
+          }}
+        />
+      )}
+
+      {/* Node content row */}
       <div
         className={cn(
           "group flex items-start gap-2 rounded-lg px-3 py-2 transition-colors",
@@ -156,7 +188,7 @@ export function ProjectTreeNode({
       {/* Children */}
       {hasChildren && expanded && (
         <div>
-          {children.map((child) => {
+          {children.map((child, index) => {
             const grandchildren = allProjects.filter((p) => p.parentId === child.id);
             return (
               <ProjectTreeNode
@@ -165,6 +197,7 @@ export function ProjectTreeNode({
                 children={grandchildren}
                 allProjects={allProjects}
                 depth={depth + 1}
+                isLast={index === children.length - 1}
                 onSetParent={onSetParent}
               />
             );
