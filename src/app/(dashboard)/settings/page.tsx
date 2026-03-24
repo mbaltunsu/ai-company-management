@@ -388,6 +388,8 @@ function SwatchRow({
 
 function ClaudeSection() {
   const [apiKey, setApiKey] = useState("");
+  const [maskedKey, setMaskedKey] = useState("");
+  const [hasExistingKey, setHasExistingKey] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [testEnabled, setTestEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -402,19 +404,21 @@ function ClaudeSection() {
     }
   }, [testResult, testFetching]);
 
-  // Load existing (masked) key on mount
+  // Load existing masked key for display only — never put masked value in the input
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((json) => {
         if (json.data?.claudeApiKey) {
-          setApiKey(json.data.claudeApiKey as string);
+          setMaskedKey(json.data.claudeApiKey as string);
+          setHasExistingKey(true);
         }
       })
       .catch(() => {});
   }, []);
 
   async function handleSave() {
+    if (!apiKey.trim()) return;
     setSaving(true);
     setSaveStatus("idle");
     try {
@@ -423,7 +427,14 @@ function ClaudeSection() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ claudeApiKey: apiKey }),
       });
-      setSaveStatus(res.ok ? "saved" : "error");
+      if (res.ok) {
+        setSaveStatus("saved");
+        setMaskedKey(apiKey.slice(0, 10) + "•".repeat(Math.max(0, apiKey.length - 14)) + apiKey.slice(-4));
+        setHasExistingKey(true);
+        setApiKey("");
+      } else {
+        setSaveStatus("error");
+      }
     } catch {
       setSaveStatus("error");
     } finally {
@@ -479,6 +490,13 @@ function ClaudeSection() {
           )}
         </div>
 
+        {/* Existing key indicator */}
+        {hasExistingKey && !apiKey && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-high text-label-sm font-mono text-on-surface-variant">
+            <span>Current key: {maskedKey}</span>
+          </div>
+        )}
+
         {/* Key input */}
         <div className="relative">
           <Input
@@ -488,7 +506,7 @@ function ClaudeSection() {
               setApiKey(e.target.value);
               setSaveStatus("idle");
             }}
-            placeholder="sk-ant-..."
+            placeholder={hasExistingKey ? "Enter new key to replace..." : "sk-ant-api03-..."}
             className={cn(inputClass, "pr-10")}
           />
           <button
